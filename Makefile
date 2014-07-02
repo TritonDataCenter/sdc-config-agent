@@ -65,47 +65,39 @@ test: $(NODEUNIT)
 TOP             := $(shell pwd)
 
 NAME			:= config-agent
-AGENT_TARBALL 	:= config-agent-$(STAMP).tar.bz2
-AGENT_PKGDIR	:= $(TOP)/$(BUILD)/agent
-AGENT_INSTDIR	:= $(AGENT_PKGDIR)/root/opt/smartdc/config-agent
+RELEASE_TARBALL := $(NAME)-$(STAMP).tar.bz2
+RELSTAGEDIR     := /tmp/$(STAMP)
 
 .PHONY: release
-release: $(AGENT_TARBALL)
-
-.PHONY: agent
-agent: all $(SMF_MANIFESTS)
-	@echo "Building $(AGENT_TARBALL)"
-	@rm -rf $(AGENT_PKGDIR)
-	@mkdir -p $(AGENT_PKGDIR)/site
-	@mkdir -p $(AGENT_INSTDIR)/build
-	@mkdir -p $(AGENT_INSTDIR)/lib
-	@mkdir -p $(AGENT_INSTDIR)/smf/manifests
-	@mkdir -p $(AGENT_INSTDIR)/test
-	@touch $(AGENT_PKGDIR)/site/.do-not-delete-me
-	cp -r $(TOP)/agent.js \
-		$(TOP)/node_modules \
-		$(AGENT_INSTDIR)
-	cp -r $(TOP)/lib/common \
-		$(TOP)/lib/agent \
-		$(AGENT_INSTDIR)/lib
-	cp -P smf/manifests/config-agent.xml $(AGENT_INSTDIR)/smf/manifests
-	cp -r $(TOP)/bin $(AGENT_INSTDIR)/
-	cp -r $(TOP)/cmd $(AGENT_INSTDIR)/
-	cp -r $(TOP)/test $(AGENT_INSTDIR)/
-	cp -PR $(NODE_INSTALL) $(AGENT_INSTDIR)/build/node
-
-$(AGENT_TARBALL): agent
-	(cd $(AGENT_PKGDIR) && $(TAR) -jcf $(TOP)/$(AGENT_TARBALL) root site)
-
+release: all deps docs $(SMF_MANIFESTS)
+	@echo "Building $(RELEASE_TARBALL)"
+	@mkdir -p $(RELSTAGEDIR)/$(NAME)
+	cd $(TOP) && $(NPM) install
+	(git symbolic-ref HEAD | awk -F/ '{print $$3}' && git describe) > $(TOP)/describe
+	cp -r \
+    $(TOP)/bin \
+    $(TOP)/cmd \
+    $(TOP)/describe \
+    $(TOP)/lib \
+    $(TOP)/Makefile \
+    $(TOP)/node_modules \
+    $(TOP)/agent.js \
+    $(TOP)/package.json \
+    $(TOP)/smf \
+    $(TOP)/test \
+    $(RELSTAGEDIR)/$(NAME)
+	cp -PR $(NODE_INSTALL) $(RELSTAGEDIR)/$(NAME)/build/node
+	(cd $(RELSTAGEDIR) && $(TAR) -jcf $(TOP)/$(RELEASE_TARBALL) *)
+	@rm -rf $(RELSTAGEDIR)
 
 .PHONY: publish
 publish: release
 	@if [[ -z "$(BITS_DIR)" ]]; then \
-    echo "error: 'BITS_DIR' must be set for 'publish' target"; \
-    exit 1; \
-  fi
-	mkdir -p $(BITS_DIR)/sapi
-	cp $(TOP)/$(AGENT_TARBALL) $(BITS_DIR)/sapi/$(AGENT_TARBALL)
+		@echo "error: 'BITS_DIR' must be set for 'publish' target"; \
+		exit 1; \
+	fi
+	mkdir -p $(BITS_DIR)/$(NAME)
+	cp $(TOP)/$(RELEASE_TARBALL) $(BITS_DIR)/$(NAME)/$(RELEASE_TARBALL)
 
 
 include ./tools/mk/Makefile.deps
