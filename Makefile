@@ -65,7 +65,7 @@ test: $(NODEUNIT)
 TOP             := $(shell pwd)
 
 NAME			:= config-agent
-RELEASE_TARBALL := $(NAME)-$(STAMP).tar.bz2
+RELEASE_TARBALL := $(NAME)-pkg-$(STAMP).tar.bz2
 RELSTAGEDIR     := /tmp/$(STAMP)
 
 .PHONY: release
