@@ -71,7 +71,7 @@ RELSTAGEDIR     := /tmp/$(STAMP)
 .PHONY: release
 release: all deps docs $(SMF_MANIFESTS)
 	@echo "Building $(RELEASE_TARBALL)"
-	@mkdir -p $(RELSTAGEDIR)/$(NAME)
+	@mkdir -p $(RELSTAGEDIR)/$(NAME)/build
 	cd $(TOP) && $(NPM) install
 	(git symbolic-ref HEAD | awk -F/ '{print $$3}' && git describe) > $(TOP)/describe
 	cp -r \
