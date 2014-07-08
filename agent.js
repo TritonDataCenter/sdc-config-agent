@@ -26,6 +26,10 @@ var ARGV = optimist.options({
 	's': {
 		alias: 'synchronous',
 		describe: 'start agent in synchronous mode'
+	},
+	't': {
+		alias: 'timeout',
+		describe: 'in sync mode, will exit in timeout seconds'
 	}
 }).argv;
 
@@ -82,7 +86,24 @@ async.waterfall([
 			 * interval, immediately write out the configuration
 			 * files and exit.
 			 */
+			var timeoutId;
+			if (ARGV.t) {
+				var timeoutSeconds = parseInt(ARGV.t, 10);
+				if (isNaN(timeoutSeconds)) {
+					var m = 'invalid timeout option';
+					log.error(m);
+					return (cb(new Error(m)));
+				}
+				timeoutId = setTimeout(function timedOut() {
+					var m2 = 'process timed out';
+					log.fatal(m2);
+					return (cb(new Error(m2)));
+				}, timeoutSeconds * 1000);
+			}
 			agent.checkAndRefresh(function (err) {
+				if (timeoutId) {
+					clearTimeout(timeoutId);
+				}
 				if (err) {
 					log.error(err,
 					    'failed to write config');
@@ -90,7 +111,6 @@ async.waterfall([
 					log.info('wrote ' +
 					    'configuration synchronously');
 				}
-
 				cb(err);
 			});
 		} else {
