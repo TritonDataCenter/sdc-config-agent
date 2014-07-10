@@ -44,9 +44,6 @@ assert.number(config.pollInterval, 'config.pollInterval');
 assert.object(config.sapi, 'config.sapi');
 assert.string(config.sapi.url, 'config.sapi.url');
 
-assert.optionalArrayOfString(config.localManifestDirs,
-    'config.localManifestDirs');
-
 var log = new Logger({
 	name: 'config-agent',
 	level: config.logLevel,
@@ -105,17 +102,14 @@ async.waterfall([
 					clearTimeout(timeoutId);
 				}
 				if (err) {
-					log.error(err,
-					    'failed to write config');
+					log.error(err, 'failed to write config');
 				} else {
-					log.info('wrote ' +
-					    'configuration synchronously');
+					log.info('wrote configuration synchronously');
 				}
 				cb(err);
 			});
 		} else {
-			setInterval(agent.checkAndRefresh.bind(agent),
-			    config.pollInterval);
+			setInterval(agent.checkAndRefresh.bind(agent), config.pollInterval);
 			cb(null);
 		}
 	}
