@@ -83,6 +83,7 @@ release: all deps docs $(SMF_MANIFESTS)
     $(TOP)/node_modules \
     $(TOP)/agent.js \
     $(TOP)/package.json \
+    $(TOP)/npm \
     $(TOP)/smf \
     $(TOP)/test \
     $(RELSTAGEDIR)/$(NAME)
