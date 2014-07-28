@@ -109,6 +109,13 @@ async.waterfall([
 				cb(err);
 			});
 		} else {
+			/*
+			 * Allow the agent to skip running checkAndRefresh entirely so
+			 * we avoid a lot of usage every X seconds by loading, rendering and
+			 * comparing files. We can now use config etags to safely assume
+			 * that configuration has not changed
+			 */
+			agent.fullCheckRefresh = false;
 			setInterval(agent.checkAndRefresh.bind(agent), config.pollInterval);
 			cb(null);
 		}
