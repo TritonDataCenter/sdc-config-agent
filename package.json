@@ -22,5 +22,6 @@
         "semver": "1.1.4",
         "sprintf-js": "0.0.7",
         "vasync": "1.5.0"
-    }
+    },
+    "license": "MPL-2.0"
 }
