@@ -8,13 +8,16 @@
     Copyright (c) 2014, Joyent, Inc.
 -->
 
-# sdc-config-agent
+# SDC Configuration Agent
 
-This agent takes care of maintaining the configuration of all internal SDC SAPI
-services. A SAPI service can refer an internal API instance or a Compute Node
-agent. For more information about SAPI services, please refer to its
-[documentation](https://github.com/joyent/sdc-sapi) for a quick overview on it.
+This repository is part of the SmartDataCenter (SDC) project. For
+contribution guidelines, issues, and general documentation, visit the
+[main SDC project](http://github.com/joyent/sdc).
 
-This repository is part of the Joyent SmartDataCenter project (SDC).  For
-contribution guidelines, issues, and general documentation, visit the main
-[SDC](http://github.com/joyent/sdc) project page.
+SDC Configuration Agent takes care of maintaining the configuration of
+all [SAPI services](https://github.com/joyent/sdc/blob/master/docs/glossary.md#service).
+
+## License
+
+SDC Configuration Agent is licensed under the
+[Mozilla Public License version 2.0](http://mozilla.org/MPL/2.0/).
