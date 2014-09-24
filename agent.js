@@ -110,21 +110,25 @@ async.waterfall([
 					clearTimeout(timeoutId);
 				}
 				if (err) {
-					log.error(err, 'failed to write config');
+					log.error(err,
+						'failed to write config');
 				} else {
-					log.info('wrote configuration synchronously');
+					log.info('wrote configuration '
+						+ 'synchronously');
 				}
 				cb(err);
 			});
 		} else {
 			/*
-			 * Allow the agent to skip running checkAndRefresh entirely so
-			 * we avoid a lot of usage every X seconds by loading, rendering and
-			 * comparing files. We can now use config etags to safely assume
-			 * that configuration has not changed
+			 * Allow the agent to skip running checkAndRefresh
+			 * entirely so we avoid a lot of usage every X seconds
+			 * by loading, rendering and comparing files. We can
+			 * now use config etags to safely assume that
+			 * configuration has not changed
 			 */
 			agent.fullCheckRefresh = false;
-			setInterval(agent.checkAndRefresh.bind(agent), config.pollInterval);
+			setInterval(agent.checkAndRefresh.bind(agent),
+				config.pollInterval);
 			cb(null);
 		}
 	}
