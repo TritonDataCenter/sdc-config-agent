@@ -29,7 +29,7 @@ COUNT=0
 SUCCESS=1
 while [[ $SUCCESS != 0 ]]; do
 
-    if [[ $RUN_EXISTS == 1 ]] && [[ $COUNT -gt 3 ]]; then
+    if [[ $RUN_EXISTS == 1 ]] && [[ $COUNT -gt 2 ]]; then
         echo 'Exceeded tries.  Agent has successful previous run, continuing...'
         break;
     fi
