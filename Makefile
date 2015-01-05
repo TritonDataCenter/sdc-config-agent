@@ -64,11 +64,9 @@ RELSTAGEDIR     := /tmp/$(STAMP)
 release: all deps docs $(SMF_MANIFESTS)
 	@echo "Building $(RELEASE_TARBALL)"
 	@mkdir -p $(RELSTAGEDIR)/$(NAME)/build
-	(git symbolic-ref HEAD | awk -F/ '{print $$3}' && git describe) > $(TOP)/describe
 	cp -r \
 		$(TOP)/bin \
 		$(TOP)/cmd \
-		$(TOP)/describe \
 		$(TOP)/lib \
 		$(TOP)/Makefile \
 		$(TOP)/node_modules \
@@ -77,6 +75,8 @@ release: all deps docs $(SMF_MANIFESTS)
 		$(TOP)/npm \
 		$(TOP)/smf \
 		$(RELSTAGEDIR)/$(NAME)
+	(git symbolic-ref HEAD | awk -F/ '{print $$3}' && git describe) \
+		> $(RELSTAGEDIR)/$(NAME)/describe
 	cp -PR $(NODE_INSTALL) $(RELSTAGEDIR)/$(NAME)/build/node
 	# Trim node
 	rm -rf \
