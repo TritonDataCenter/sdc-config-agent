@@ -9,8 +9,6 @@
         "bunyan": "0.21.3",
         "cmdln": "1.2.0",
         "hogan.js": "2.0.0",
-        "jsprim": "0.3.1",
-        "ldapjs": "git://github.com/mcavage/node-ldapjs.git#0a88109",
         "lru-cache": "2.3.0",
         "mkdirp": "0.3.4",
         "node-uuid": "1.4.0",
@@ -20,7 +18,7 @@
         "sdc-clients": "git+ssh://git@github.com:joyent/node-sdc-clients.git#2395db5",
         "semver": "1.1.4",
         "sprintf-js": "0.0.7",
-        "vasync": "1.5.0"
+        "vasync": "1.6.2"
     },
     "license": "MPL-2.0"
 }

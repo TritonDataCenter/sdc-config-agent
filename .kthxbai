@@ -1,0 +1,25 @@
+# kthxbai config file (https://github.com/trentm/node-kthxbai)
+## +pragma: rm-self
+
+# Default patterns
+**/example
+**/examples
+**/test
+**/tests
+**/doc
+**/man
+**/.travis.yml
+
+# Custom patterns
+**/README.md
+**/CHANGES.md
+**/docs
+**/Makefile
+
+# sdc-clients: Only lib/sapi.js is used.
+# TODO: Not sure all of these are safely removable.
+sdc-clients/tools
+sdc-clients/lib/*.javascript
+sdc-clients/lib/{amon,assertions,ca,cache,cnapi,dsapi,fwapi,imgapi,napi,papi,vmapi,usageapi}.js
+sdc-clients/node_modules/{backoff,bunyan,clone,http-signature,libuuid,once,ssh-agent,ufds,verror}
+
