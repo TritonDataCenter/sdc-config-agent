@@ -1,20 +1,32 @@
 # kthxbai config file (https://github.com/trentm/node-kthxbai)
-## +pragma: rm-self
+# +pragma: rm-self
 
 # Default patterns
+**/AUTHORS
+**/README*
+**/Readme*
+**/readme*
+**/TODO*
+**/CHANGES.md
+**/History.md
 **/example
 **/examples
+**/samples
 **/test
 **/tests
+**/tst
 **/doc
 **/man
 **/.travis.yml
 
 # Custom patterns
-**/README.md
-**/CHANGES.md
+**/.dir-locals.el
+**/.gitmodules
+**/.npmignore
+**/.jshintrc
 **/docs
 **/Makefile
+**/benchmark
 
 # sdc-clients: Only lib/sapi.js is used.
 # TODO: Not sure all of these are safely removable.
@@ -22,4 +34,47 @@ sdc-clients/tools
 sdc-clients/lib/*.javascript
 sdc-clients/lib/{amon,assertions,ca,cache,cnapi,dsapi,fwapi,imgapi,napi,papi,vmapi,usageapi}.js
 sdc-clients/node_modules/{backoff,bunyan,clone,http-signature,libuuid,once,ssh-agent,ufds,verror}
+
+# hogan.js
+hogan.js/web
+hogan.js/tools
+
+# dtrace-provider
+**/dtrace-provider/build/{config.gypi,*.target.mk,gyp-flock-tool,binding.Makefile}
+**/dtrace-provider/build/Release/{.deps,obj.target,linker.lock}
+**/dtrace-provider/!(build|package.json|dtrace-provider.js|LICENSE)
+**/dtrace-provider/package.json.rej
+
+# semver
+**/semver/{foot,head}.js
+**/semver/semver.min.js
+**/semver/semver.min.js.gz
+**/semver/semver.browser.js
+**/semver/semver.browser.js.gz
+**/semver/bin
+**/.bin/semver
+
+# verror
+**/verror/Makefile*
+**/verror/jsl.node.conf
+**/verror/experiments
+
+# extsprintf
+**/extsprintf/Makefile*
+**/extsprintf/jsl.node.conf
+
+# cmdln & dashdash
+**/cmdln/tools
+**/dashdash/tools
+
+# restify: our usage here is limited
+**/restify/node_modules/spdy
+
+# mkdirp
+**/mkdirp/node_modules/minimist
+**/mkdirp/bin
+**/.bin/mkdirp
+
+# bunyan (we don't need bunyan's optional 'mv' module usage)
+**/bunyan/node_modules/mv
 

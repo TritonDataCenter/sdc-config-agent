@@ -46,6 +46,7 @@ include ./tools/mk/Makefile.smf.defs
 all: $(SMF_MANIFESTS) | $(NPM_EXEC) $(REPO_DEPS) sdc-scripts
 	$(NPM) install && ./node_modules/.bin/kthxbai
 
+DISTCLEAN_FILES+=node_modules
 
 
 #
@@ -63,7 +64,6 @@ RELSTAGEDIR     := /tmp/$(STAMP)
 release: all deps docs $(SMF_MANIFESTS)
 	@echo "Building $(RELEASE_TARBALL)"
 	@mkdir -p $(RELSTAGEDIR)/$(NAME)/build
-	cd $(TOP) && $(NPM) install
 	(git symbolic-ref HEAD | awk -F/ '{print $$3}' && git describe) > $(TOP)/describe
 	cp -r \
 		$(TOP)/bin \
