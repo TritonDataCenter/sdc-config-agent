@@ -13,14 +13,9 @@
 #
 
 #
-# Tools
-#
-NODEUNIT	:= ./node_modules/.bin/nodeunit
-
-#
 # Files
 #
-JS_FILES	:= $(shell ls *.js) $(shell find cmd lib test -name '*.js')
+JS_FILES	:= $(shell ls *.js) $(shell find cmd lib -name '*.js')
 JSL_CONF_NODE	 = tools/jsl.node.conf
 JSL_FILES_NODE   = $(JS_FILES)
 JSSTYLE_FILES	 = $(JS_FILES)
@@ -48,21 +43,10 @@ include ./tools/mk/Makefile.smf.defs
 # Repo-specific targets
 #
 .PHONY: all
-all: $(SMF_MANIFESTS) | $(NODEUNIT) $(REPO_DEPS) sdc-scripts
-	$(NPM) install
+all: $(SMF_MANIFESTS) | $(NPM_EXEC) $(REPO_DEPS) sdc-scripts
+	$(NPM) install && ./node_modules/.bin/kthxbai
 
-$(NODEUNIT): | $(NPM_EXEC)
-	$(NPM) install
-
-CLEAN_FILES += $(NODEUNIT) ./node_modules/tap ./test/tests.log
-
-#
-# Test SAPI in both modes: proto and full
-#
-.PHONY: test
-test: $(NODEUNIT)
-	MODE=proto $(NODEUNIT) test/*.test.js
-	MODE=full $(NODEUNIT) test/*.test.js
+DISTCLEAN_FILES+=node_modules
 
 
 #
@@ -80,22 +64,26 @@ RELSTAGEDIR     := /tmp/$(STAMP)
 release: all deps docs $(SMF_MANIFESTS)
 	@echo "Building $(RELEASE_TARBALL)"
 	@mkdir -p $(RELSTAGEDIR)/$(NAME)/build
-	cd $(TOP) && $(NPM) install
-	(git symbolic-ref HEAD | awk -F/ '{print $$3}' && git describe) > $(TOP)/describe
 	cp -r \
-    $(TOP)/bin \
-    $(TOP)/cmd \
-    $(TOP)/describe \
-    $(TOP)/lib \
-    $(TOP)/Makefile \
-    $(TOP)/node_modules \
-    $(TOP)/agent.js \
-    $(TOP)/package.json \
-    $(TOP)/npm \
-    $(TOP)/smf \
-    $(TOP)/test \
-    $(RELSTAGEDIR)/$(NAME)
+		$(TOP)/bin \
+		$(TOP)/cmd \
+		$(TOP)/lib \
+		$(TOP)/Makefile \
+		$(TOP)/node_modules \
+		$(TOP)/agent.js \
+		$(TOP)/package.json \
+		$(TOP)/npm \
+		$(TOP)/smf \
+		$(RELSTAGEDIR)/$(NAME)
+	(git symbolic-ref HEAD | awk -F/ '{print $$3}' && git describe) \
+		> $(RELSTAGEDIR)/$(NAME)/describe
 	cp -PR $(NODE_INSTALL) $(RELSTAGEDIR)/$(NAME)/build/node
+	# Trim node
+	rm -rf \
+		$(RELSTAGEDIR)/$(NAME)/build/node/bin/npm \
+		$(RELSTAGEDIR)/$(NAME)/build/node/lib/node_modules \
+		$(RELSTAGEDIR)/$(NAME)/build/node/include \
+		$(RELSTAGEDIR)/$(NAME)/build/node/share
 	uuid -v4 > $(RELSTAGEDIR)/$(NAME)/image_uuid
 	(cd $(RELSTAGEDIR) && $(TAR) -jcf $(TOP)/$(RELEASE_TARBALL) *)
 	cat $(TOP)/manifest.tmpl | sed \

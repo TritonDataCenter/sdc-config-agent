@@ -1,12 +1,13 @@
 /node_modules
 /tmp
+/npm-debug.log
 build
-docs/*.json
-docs/*.html
+/docs/*.json
+/docs/*.html
 cscope.in.out
 cscope.po.out
 cscope.out
-smf/manifests/*.xml
+/smf/manifests/*.xml
 *.swp
 sapi-pkg-master-*.tar.bz2
 config-agent-*.tar.bz2
