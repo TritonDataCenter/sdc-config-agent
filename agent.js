@@ -9,10 +9,11 @@
  */
 
 /*
- * agent.js: SDC configuration agent
+ * SmartDataCenter config agent
  *
- * This agent queries SAPI for changes to a zone's configuration, downloads
- * those changes, and applies any applicable updates.
+ * This agent periodically gathers config information for this zone
+ * from SAPI, renders file templates (in "sapi_templates/..." dirs) and, if
+ * changed, writes out the new file content and (optionally) runs a `post_cmd`.
  */
 
 var assert = require('assert-plus');
@@ -61,19 +62,56 @@ var log = new Logger({
 
 
 var agent;
+var zonename;
 
 async.waterfall([
+	// TODO(refactor) move this to Agent.init
 	function (cb) {
-		util.zonename(function (err, zonename) {
+		util.getZonename({log: log}, function (err, zonename_) {
 			if (err)
 				log.error(err, 'failed to determine zone name');
 
+			zonename = zonename_;
 			if (zonename !== 'global') {
 				config.instances = [ zonename ];
 			} // else TODO AGENT-732
 			return (cb(err));
 		});
 	},
+
+	// TODO(refactor) move this to Agent.init
+	function gatherAutoMetadata(cb) {
+		// TODO: pass this in as a separate opt to `new Agent`.
+		if (zonename === 'global') {
+			config.autoMetadata = {};
+			return (cb());
+		}
+
+		var mdataOpts = {log: log, key: 'sdc:nics'};
+		util.mdataGet(mdataOpts, function (err, nicsJson) {
+			if (err) {
+				return (cb(err));
+			}
+
+			var nics = JSON.parse(nicsJson);
+			var auto = config.autoMetadata = {};
+			for (var i = 0; i < nics.length; i++) {
+				var nic = nics[i];
+				if (i === 0) {
+					auto.PRIMARY_IP = nic.ip;
+				}
+				if (nic.nic_tag) {
+					auto[nic.nic_tag.toUpperCase() + '_IP']
+						= nic.ip;
+				}
+			}
+
+			log.info({autoMetadata: config.autoMetadata},
+				'gathered autoMetadata');
+			cb();
+		});
+	},
+
 	function (cb) {
 		agent = new Agent(config, log);
 
@@ -119,14 +157,6 @@ async.waterfall([
 				cb(err);
 			});
 		} else {
-			/*
-			 * Allow the agent to skip running checkAndRefresh
-			 * entirely so we avoid a lot of usage every X seconds
-			 * by loading, rendering and comparing files. We can
-			 * now use config etags to safely assume that
-			 * configuration has not changed
-			 */
-			agent.fullCheckRefresh = false;
 			setInterval(agent.checkAndRefresh.bind(agent),
 				config.pollInterval);
 			cb(null);

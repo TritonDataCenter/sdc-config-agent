@@ -10,42 +10,78 @@
 #
 
 #
-# Rsync the master in this working copy to the install on the given HN.
+# Rsync the config-agent code in this working copy to the
+# given SDC headnode and zone.
+#
+# Usage:
+#   ./tools/rsync-to HEADNODE ZONE-UUID-OR-ALIAS
+#
+# Examples:
+#   ./tools/rsync-to root@10.99.99.7 cnapi  # the CoaL CNAPI zone
+#   ./tools/rsync-to coal manatee0          # if 'coal' is in ~/.ssh/config
+#   ./tools/rsync-to coal global            # the config-agent in the GZ
 #
 
-#set -o xtrace
+if [[ -n "$TRACE" ]]; then
+    export PS4='[\D{%FT%TZ}] ${BASH_SOURCE}:${LINENO}: ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
+    set -o xtrace
+fi
 set -o errexit
+set -o pipefail
 
 TOP=$(cd $(dirname $0)/../; pwd)
-NODE=$1
 
-if [[ -z "$SAPI_ZONE" ]]; then
-    SAPI_ZONE=$(ssh $NODE vmadm lookup -1 alias=sapi0 state=running)
+
+#---- support stuff
+
+function fatal
+{
+    echo "$0: fatal error: $*"
+    exit 1
+}
+
+
+#---- mainline
+
+NODE=$1
+[[ -n "$NODE" ]] || fatal "no HEADNODE arg given"
+ZONE=$2
+[[ -n "$ZONE" ]] || fatal "no ZONE-UUID-OR-ALIAS arg given"
+
+if [[ $ZONE == "global" ]]; then
+    ZONEUUID=global
+    ZONEALIAS=global
+else
+    ZONEUUID=$(ssh $NODE "vmadm lookup -1 uuid=$ZONE 2>/dev/null || vmadm lookup -1 alias=~$ZONE")
+    ZONEALIAS=$(ssh $NODE "vmadm get $ZONEUUID | json alias")
 fi
-echo "SAPI_ZONE: $SAPI_ZONE"
+echo "ZONE: $ZONEUUID ($ZONEALIAS)"
 
 extraOpts=
 if [[ $(uname -s) != "SunOS" ]]; then
     extraOpts="--exclude *.node --exclude build"
-else
-    # Clean node_modules everytime.
-    ssh $NODE rm -rf /zones/$SAPI_ZONE/root/opt/smartdc/sapi/node_modules
+fi
+baseDir=/zones/$ZONEUUID/root/opt/smartdc/config-agent
+if [[ "$ZONEUUID" == "global" ]]; then
+    baseDir=/opt/smartdc/agents/lib/node_modules/config-agent
 fi
 
-for f in lib node_modules sapi_manifests server.js smf test; do
-    rsync -av ${TOP}/$f $NODE:/zones/$SAPI_ZONE/root/opt/smartdc/sapi/ $extraOpts
+
+# Clean and rsync.
+if [[ $(uname -s) == "SunOS" ]]; then
+    # Clean node_modules everytime because that's preferred and we can
+    # use the binary .node files from this plat.
+    ssh $NODE rm -rf $baseDir/node_modules
+fi
+for f in agent.js bin cmd lib Makefile node_modules npm package.json smf; do
+    rsync -av ${TOP}/$f $NODE:$baseDir/ $extraOpts
 done
-#rsync -av ${TOP}/lib $NODE:/zones/$SAPI_ZONE/root/opt/smartdc/sapi/lib $extraOpts
-#rsync -av ${TOP}/node_modules $NODE:/zones/$SAPI_ZONE/root/opt/smartdc/sapi/node_modules $extraOpts
-#rsync -av ${TOP}/sapi_manifests $NODE:/zones/$SAPI_ZONE/root/opt/smartdc/sapi/sapi_manifests $extraOpts
-#rsync -av ${TOP}/server.js $NODE:/zones/$SAPI_ZONE/root/opt/smartdc/sapi/server.js $extraOpts
-#rsync -av ${TOP}/smf $NODE:/zones/$SAPI_ZONE/root/opt/smartdc/sapi/smf $extraOpts
-#rsync -av ${TOP}/test $NODE:/zones/$SAPI_ZONE/root/opt/smartdc/sapi/test $extraOpts
 
-state=$(ssh ${NODE} svcs -z ${SAPI_ZONE} -H -o state sapi)
+
+# Restart config-agent.
+state=$(ssh ${NODE} svcs -z ${ZONEUUID} -H -o state config-agent)
 if [[ "$state" == "maintenance" ]]; then
-    ssh ${NODE} svcadm -z ${SAPI_ZONE} clear sapi
+    ssh ${NODE} svcadm -z ${ZONEUUID} clear config-agent
 else
-    ssh ${NODE} svcadm -z ${SAPI_ZONE} restart sapi
+    ssh ${NODE} svcadm -z ${ZONEUUID} restart config-agent
 fi
-ssh ${NODE} svcadm -z ${SAPI_ZONE} restart config-agent
