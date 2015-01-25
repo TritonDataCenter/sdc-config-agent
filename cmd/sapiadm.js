@@ -100,7 +100,7 @@ Sapiadm.prototype.init = function (opts, args, cb) {
 		Cmdln.prototype.init.call(self, opts, args, cb);
 	};
 
-	mod_util.zonename(function (err, zonename) {
+	mod_util.getZonename({log: this.log}, function (err, zonename) {
 		if (err)
 			return (cb(err));
 
