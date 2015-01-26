@@ -1,10 +1,18 @@
 # sdc-config-agent changelog
 
+## 1.2.0
+
+- [SAPI-248] Add `{{auto.ZONENAME}}` and `{{auto.SERVER_UUID}}` autoMetadata:
+
+        ZONENAME        The `zonename` of this zone.
+        SERVER_UUID     The UUID of the server (CN) on which this agent is
+                        running.
+
 ## 1.1.0
 
 - [SAPI-224] Add support for the `{{auto.*}}` namespace of vars in rendered
-  templates. This includes data gathers by the config-agent when it
-  starts. Current keys are:
+  templates (a.k.a. "autoMetadata"). This includes data gathers by the
+  config-agent when it starts. Current keys are:
 
         PRIMARY_IP      IP of the first NIC in this zone.
                         Not available in the global zone.

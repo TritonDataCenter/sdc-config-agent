@@ -64,9 +64,13 @@ var log = new Logger({
 var agent;
 var zonename;
 
+// For now we stash `autoMetadata` onto the config object.
+// TODO(refactor): pass autoMetadata as an opt to `new Agent`.
+var autoMetadata = config.autoMetadata = {};
+
 async.waterfall([
 	// TODO(refactor) move this to Agent.init
-	function (cb) {
+	function gatherInsts(cb) {
 		util.getZonename({log: log}, function (err, zonename_) {
 			if (err)
 				log.error(err, 'failed to determine zone name');
@@ -75,15 +79,16 @@ async.waterfall([
 			if (zonename !== 'global') {
 				config.instances = [ zonename ];
 			} // else TODO AGENT-732
+
+			autoMetadata.ZONENAME = zonename;
+
 			return (cb(err));
 		});
 	},
 
 	// TODO(refactor) move this to Agent.init
-	function gatherAutoMetadata(cb) {
-		// TODO: pass this in as a separate opt to `new Agent`.
+	function autoMetadataIps(cb) {
 		if (zonename === 'global') {
-			config.autoMetadata = {};
 			return (cb());
 		}
 
@@ -94,22 +99,42 @@ async.waterfall([
 			}
 
 			var nics = JSON.parse(nicsJson);
-			var auto = config.autoMetadata = {};
 			for (var i = 0; i < nics.length; i++) {
 				var nic = nics[i];
 				if (i === 0) {
-					auto.PRIMARY_IP = nic.ip;
+					autoMetadata.PRIMARY_IP = nic.ip;
 				}
 				if (nic.nic_tag) {
-					auto[nic.nic_tag.toUpperCase() + '_IP']
-						= nic.ip;
+					var NIC_TAG = nic.nic_tag.toUpperCase();
+					autoMetadata[NIC_TAG + '_IP'] = nic.ip;
 				}
 			}
 
-			log.info({autoMetadata: config.autoMetadata},
-				'gathered autoMetadata');
 			cb();
 		});
+	},
+
+	function autoMetadataServerUuid(cb) {
+		if (zonename === 'global') {
+			util.getSysinfo({log: log}, function (err, sysinfo) {
+				if (err) {
+					cb(err);
+				} else {
+					autoMetadata.SERVER_UUID = sysinfo.UUID;
+					cb();
+				}
+			});
+		} else {
+			var mdataOpts = {log: log, key: 'sdc:server_uuid'};
+			util.mdataGet(mdataOpts, function (err, serverUuid) {
+				if (err) {
+					cb(err);
+				} else {
+					autoMetadata.SERVER_UUID = serverUuid;
+					cb();
+				}
+			});
+		}
 	},
 
 	function (cb) {
