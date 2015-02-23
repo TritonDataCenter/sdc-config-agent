@@ -19,5 +19,9 @@
         "vasync": "1.6.2",
         "verror": "1.6.0"
     },
-    "license": "MPL-2.0"
+    "license": "MPL-2.0",
+    "scripts": {
+        "postinstall": "./npm/postinstall.sh",
+        "postuninstall": "./npm/postuninstall.sh"
+    }
 }

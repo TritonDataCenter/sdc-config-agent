@@ -20,7 +20,7 @@ export LIB_DIR=$PREFIX/lib
 . /lib/sdc/config.sh
 load_sdc_config
 
-CONFIGURABLE_AGENTS="net-agent vm-agent"
+CONFIGURABLE_AGENTS="cn-agent net-agent vm-agent"
 AGENT=$npm_package_name
 SAPI_URL=http://${CONFIG_sapi_domain}
 
