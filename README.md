@@ -10,10 +10,15 @@
 
 # sdc-config-agent
 
-This agent takes care of maintaining the configuration of all internal SDC SAPI
-services. A SAPI service can refer an internal API instance or a Compute Node
-agent. For more information about SAPI services, please refer to its
-[documentation](https://github.com/joyent/sdc-sapi) for a quick overview on it.
+This agent takes care of creating and updating config files for SmartDataCenter
+services. There is typically a 'config-agent' service running in the global
+zone (GZ) of each SDC server and one in each core SDC zone.
+
+The config-agent updates on a regular polling interval. It polls
+[Services API (SAPI)](https://github.com/joyent/sdc-sapi) for config
+information for the SDC instance(s) it is managing, renders templates (those
+under configured "sapi\_manifests" directories) to file content and updates the
+config files, if changed. More details in the SAPI documentation.
 
 This repository is part of the Joyent SmartDataCenter project (SDC).  For
 contribution guidelines, issues, and general documentation, visit the main
