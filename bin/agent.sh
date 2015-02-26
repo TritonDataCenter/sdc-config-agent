@@ -16,7 +16,7 @@
 
 set -o xtrace
 
-DIR=$(dirname $(dirname $0))
+DIR=$(cd $(dirname $(readlink -f $0))/../ >/dev/null; pwd)
 EXEC="$DIR/build/node/bin/node $DIR/agent.js"
 
 SAPI_URL=
