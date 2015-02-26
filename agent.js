@@ -5,7 +5,7 @@
  */
 
 /*
- * Copyright (c) 2014, Joyent, Inc.
+ * Copyright (c) 2015, Joyent, Inc.
  */
 
 /*
@@ -66,8 +66,7 @@ if (ARGV['sapi-url']) {
 assert.object(config, 'config');
 assert.string(config.logLevel, 'config.logLevel');
 assert.number(config.pollInterval, 'config.pollInterval');
-assert.object(config.sapi, 'config.sapi');
-assert.string(config.sapi.url, 'config.sapi.url');
+assert.optionalObject(config.sapi, 'config.sapi');
 
 var log = new Logger({
 	name: 'config-agent',
@@ -99,6 +98,24 @@ async.waterfall([
 			autoMetadata.ZONENAME = zonename;
 
 			return (cb(err));
+		});
+	},
+
+	// For zone instances, make sure we always default to mdata-get sapi-url
+	// if the value was never passed
+	function ensureSapiUrl(cb) {
+		if (zonename === 'global' || config.sapi !== undefined) {
+			return (cb());
+		}
+
+		var mdataOpts = {log: log, key: 'sapi-url'};
+		util.mdataGet(mdataOpts, function (err, sapiUrl) {
+			if (err) {
+				return (cb(err));
+			}
+
+			config.sapi = { url: sapiUrl };
+			cb();
 		});
 	},
 
