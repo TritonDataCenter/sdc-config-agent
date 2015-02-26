@@ -1,5 +1,12 @@
 # sdc-config-agent changelog
 
+## 1.3.0
+
+- GZ config-agent now supports a config directory located at
+  /opt/smartdc/agents/etc/config-agent.d. Files dropped there will be parsed
+  and loaded as an additional instances
+
+
 ## 1.2.0
 
 - [SAPI-248] Add `{{auto.ZONENAME}}` and `{{auto.SERVER_UUID}}` autoMetadata:

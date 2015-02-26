@@ -11,7 +11,7 @@
 /*
  * SmartDataCenter config agent
  *
- * This agent periodically gathers config information for this zone
+ * This agent periodically gathers config information for this instance
  * from SAPI, renders file templates (in "sapi_templates/..." dirs) and, if
  * changed, writes out the new file content and (optionally) runs a `post_cmd`.
  */
@@ -39,13 +39,29 @@ var ARGV = optimist.options({
 	't': {
 		alias: 'timeout',
 		describe: 'in sync mode, will exit in timeout seconds'
+	},
+	'u': {
+		alias: 'sapi-url',
+		describe: 'SAPI URL'
 	}
 }).argv;
 
 
-var file = ARGV.f ? ARGV.f : '/opt/smartdc/config-agent/etc/config.json';
-var contents = fs.readFileSync(file);
-var config = JSON.parse(contents);
+var config;
+if (ARGV.f) {
+	var contents = fs.readFileSync(ARGV.f);
+	config = JSON.parse(contents);
+} else {
+	config = {
+		instances: [],
+		logLevel: 'info',
+		pollInterval: 60000
+	};
+}
+
+if (ARGV['sapi-url']) {
+	config.sapi = { url: ARGV['sapi-url'] };
+}
 
 assert.object(config, 'config');
 assert.string(config.logLevel, 'config.logLevel');

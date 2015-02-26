@@ -17,7 +17,31 @@
 set -o xtrace
 
 DIR=$(dirname $(dirname $0))
-EXEC="$DIR/build/node/bin/node $DIR/agent.js -f $DIR/etc/config.json"
+EXEC="$DIR/build/node/bin/node $DIR/agent.js"
+
+SAPI_URL=
+. /lib/sdc/config.sh
+load_sdc_config
+
+# compute node
+if [[ -n ${CONFIG_sapi_domain} ]]; then
+   SAPI_URL=http://${CONFIG_sapi_domain}
+elif [[ -n ${CONFIG_datacenter_name} && -n ${CONFIG_dns_domain} ]]; then
+   SAPI_URL=http://sapi.${CONFIG_datacenter_name}.${CONFIG_dns_domain}
+else
+    # regular zone with mdata-get
+    SAPI_URL=$(/usr/sbin/mdata-get sapi-url)
+fi
+
+if [[ -n $SAPI_URL ]]; then
+    EXEC="$EXEC --sapi-url $SAPI_URL"
+fi
+
+# default config for zone instances
+if [[ -f $DIR/etc/config.json ]]; then
+    EXEC="$EXEC -f $DIR/etc/config.json"
+fi
+
 RUN_FILE=/var/tmp/.ran_config_agent
 RUN_EXISTS=0
 if [[ -e $RUN_FILE ]]; then
