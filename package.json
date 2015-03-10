@@ -23,7 +23,7 @@
     "bin": {
         "config-agent": "./bin/agent.sh"
     },
-    "DISABLED scripts": {
+    "scripts": {
         "postinstall": "./npm/postinstall.sh",
         "postuninstall": "./npm/postuninstall.sh"
     }
