@@ -48,8 +48,20 @@ var ARGV = optimist.options({
 
 
 var config;
-if (ARGV.f) {
-	var contents = fs.readFileSync(ARGV.f);
+var configPath;
+var defaultConfigPath = '/opt/smartdc/config-agent/etc/config.json';
+
+// Only the GZ config-agent runs in 'no-config' mode, so for non-GZ agents
+// we ensure that a default configuration is always present. If none of the
+// two cases below match, we don't parse a configuration file
+if (ARGV.f && fs.existsSync(ARGV.f)) {
+	configPath = ARGV.f;
+} else if (fs.existsSync(defaultConfigPath)) {
+	configPath = defaultConfigPath;
+}
+
+if (configPath) {
+	var contents = fs.readFileSync(configPath);
 	config = JSON.parse(contents);
 } else {
 	config = {
