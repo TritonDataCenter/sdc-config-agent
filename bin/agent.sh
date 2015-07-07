@@ -70,3 +70,12 @@ done
 echo 'Starting the agent in daemon mode.'
 touch $RUN_FILE
 $EXEC &
+
+# Capture to be able to send refresh signal
+DAEMON_PID=$!
+
+handle_hup () {
+  kill -HUP $DAEMON_PID
+}
+
+trap handle_hup HUP # SIGHUP

@@ -233,7 +233,19 @@ async.waterfall([
 		}
 	}
 ], function (err) {
-	if (err)
+	if (err) {
 		process.exit(1);
-
+	}
+	// Rewrite config on `svcadm refresh config-agent`:
+	process.on('SIGHUP', function () {
+		log.info('Trapped SIGHUP, rewritting config synchronously');
+		agent.checkAndRefresh(function (er2) {
+			if (er2) {
+				log.error(er2, 'failed to write config');
+			} else {
+				log.info('wrote configuration synchronously');
+			}
+		});
+	});
 });
+/* vim: set noet sw=4 sts=4 ts=4: */
