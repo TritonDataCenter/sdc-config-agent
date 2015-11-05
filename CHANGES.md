@@ -1,5 +1,17 @@
 # sdc-config-agent changelog
 
+## 1.5.0
+
+- [TOOLS-1084] Support sync manifest update through SIGHUP using
+  `svcadm refresh config-agent`
+- [AGENT-945] config-agent should provide a way to spit metadata keys out
+  as JSON in templates -- adds support in Hogan.js for the use of
+  `{{{foo}}}` to expand to the JSON of `foo` if it's a nested object.
+
+## 1.4.0
+
+- [AGENT-909] for now, only agents using "config-agent" should register with SAPI
+
 ## 1.3.0
 
 - GZ config-agent now supports a config directory located at

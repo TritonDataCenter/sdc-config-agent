@@ -33,7 +33,7 @@
 sdc-clients/tools
 sdc-clients/lib/*.javascript
 sdc-clients/lib/{amon,assertions,ca,cache,cnapi,dsapi,fwapi,imgapi,napi,papi,vmapi,usageapi}.js
-sdc-clients/node_modules/{backoff,bunyan,clone,http-signature,libuuid,once,ssh-agent,ufds,verror}
+sdc-clients/node_modules/{bunyan,clone,http-signature,libuuid,smartdc-auth,ufds,verror}
 
 # hogan.js
 hogan.js/web
