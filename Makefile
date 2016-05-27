@@ -5,7 +5,7 @@
 #
 
 #
-# Copyright 2015 Joyent, Inc.
+# Copyright (c) 2015, Joyent, Inc.
 #
 
 #
@@ -39,22 +39,13 @@ else
 endif
 include ./tools/mk/Makefile.smf.defs
 
-#
-# Due to the unfortunate nature of npm, the Node Package Manager, there appears
-# to be no way to assemble our dependencies without running the lifecycle
-# scripts.  These lifecycle scripts should not be run except in the context of
-# an agent installation or uninstallation, so we provide a magic environment
-# varible to disable them here.
-#
-NPM_ENV =		SDC_AGENT_SKIP_LIFECYCLE=yes
-RUN_NPM_INSTALL =	$(NPM_ENV) $(NPM) install
 
 #
 # Repo-specific targets
 #
 .PHONY: all
 all: $(SMF_MANIFESTS) | $(NPM_EXEC) $(REPO_DEPS) sdc-scripts
-	$(RUN_NPM_INSTALL) && ./node_modules/.bin/kthxbai
+	$(NPM) install && ./node_modules/.bin/kthxbai
 
 DISTCLEAN_FILES+=node_modules
 
