@@ -218,11 +218,11 @@ async.waterfall([
 					clearTimeout(timeoutId);
 				}
 				if (err) {
-					log.error(err,
-						'failed to write config');
+					log.error(err, 'synchronous agent '
+						+ 'checkAndRefresh failure');
 				} else {
-					log.info('wrote configuration '
-						+ 'synchronously');
+					log.info('synchronous agent '
+						+ 'checkAndRefresh complete');
 				}
 				cb(err);
 			});
