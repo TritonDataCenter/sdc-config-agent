@@ -152,6 +152,16 @@ async.waterfall([
 				if (nic.nic_tag) {
 					var NIC_TAG = nic.nic_tag.toUpperCase();
 					autoMetadata[NIC_TAG + '_IP'] = nic.ip;
+
+					/*
+					 * If there is a nic tag of the form <name>_RACK<number>,
+					 * it will override any similarly named nic tag (e.g.
+					 * "MANTA_RACK##" will override "MANTA" nic tags).
+					 */
+					if (NIC_TAG.search(/^[A-Z]+_RACK\d+$/) === 0) {
+						NIC_TAG = NIC_TAG.split('_')[0];
+						autoMetadata[NIC_TAG + '_IP'] = nic.ip;
+					}
 				}
 			}
 
