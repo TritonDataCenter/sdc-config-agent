@@ -1,5 +1,11 @@
 # sdc-config-agent changelog
 
+## 1.6.0
+
+- [AGENT-1086] Support network per rack Manta deployments by allowing 
+  nic_tags with \<tag>_rackNN suffixes to override nic_tags with the same \<tag>
+  (e.g "manta_rack99" overrides "manta").
+
 ## 1.5.0
 
 - [TOOLS-1084] Support sync manifest update through SIGHUP using
