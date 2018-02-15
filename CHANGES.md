@@ -1,5 +1,11 @@
 # sdc-config-agent changelog
 
+## 1.6.1
+
+- [TRITON-138] Avoid setInterval in polling in case the process (e.g. calling
+  SAPI GetConfig) takes longer than the poll interval. This can result in
+  uselessly piling on SAPI.
+
 ## 1.6.0
 
 - [AGENT-1086] Support network per rack Manta deployments by allowing 
