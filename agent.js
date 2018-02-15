@@ -5,11 +5,11 @@
  */
 
 /*
- * Copyright (c) 2015, Joyent, Inc.
+ * Copyright (c) 2018, Joyent, Inc.
  */
 
 /*
- * SmartDataCenter config agent
+ * Triton config agent
  *
  * This agent periodically gathers config information for this instance
  * from SAPI, renders file templates (in "sapi_templates/..." dirs) and, if
@@ -20,6 +20,7 @@ var assert = require('assert-plus');
 var async = require('async');
 var fs = require('fs');
 var optimist = require('optimist');
+var uuidv4 = require('uuid/v4');
 var util = require('./lib/common/util');
 
 var Agent = require('./lib/agent/agent');
@@ -94,6 +95,33 @@ var zonename;
 // For now we stash `autoMetadata` onto the config object.
 // TODO(refactor): pass autoMetadata as an opt to `new Agent`.
 var autoMetadata = config.autoMetadata = {};
+
+
+/*
+ * This is the normal operating mode of config-agent: periodically checking
+ * for config updates from SAPI and refreshing manifests/config files.
+ */
+function startPeriodicRefresh() {
+	var checkOnce = function () {
+		var startTime = Date.now();
+		var reqId = uuidv4();
+		log.trace({req_id: reqId}, 'start periodic check');
+
+		agent.checkAndRefresh(function doneCheck(err) {
+			log.debug(
+				{
+					err: err,
+					req_id: reqId,
+					elapsedMs: Date.now() - startTime
+				},
+				'done periodic check');
+
+			setTimeout(checkOnce, config.pollInterval);
+		});
+	};
+
+	setTimeout(checkOnce, config.pollInterval);
+}
 
 async.waterfall([
 	// TODO(refactor) move this to Agent.init
@@ -237,8 +265,7 @@ async.waterfall([
 				cb(err);
 			});
 		} else {
-			setInterval(agent.checkAndRefresh.bind(agent),
-				config.pollInterval);
+			startPeriodicRefresh();
 			cb(null);
 		}
 	}
