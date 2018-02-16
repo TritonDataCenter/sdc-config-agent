@@ -44,7 +44,7 @@ include ./tools/mk/Makefile.smf.defs
 # Repo-specific targets
 #
 .PHONY: all
-all: $(SMF_MANIFESTS) | $(NPM_EXEC) $(REPO_DEPS) sdc-scripts
+all: $(SMF_MANIFESTS) | $(NPM_EXEC)
 	$(NPM) install && ./node_modules/.bin/kthxbai
 
 DISTCLEAN_FILES+=node_modules
@@ -116,5 +116,3 @@ ifeq ($(shell uname -s),SunOS)
 endif
 include ./tools/mk/Makefile.smf.targ
 include ./tools/mk/Makefile.targ
-
-sdc-scripts: deps/sdc-scripts/.git
