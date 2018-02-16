@@ -68,7 +68,7 @@ if (configPath) {
 	config = {
 		instances: [],
 		logLevel: 'info',
-		pollInterval: 60000
+		pollInterval: 120000
 	};
 }
 
