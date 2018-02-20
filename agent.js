@@ -20,7 +20,6 @@ var assert = require('assert-plus');
 var async = require('async');
 var fs = require('fs');
 var optimist = require('optimist');
-var uuidv4 = require('uuid/v4');
 var util = require('./lib/common/util');
 
 var Agent = require('./lib/agent/agent');
@@ -103,19 +102,7 @@ var autoMetadata = config.autoMetadata = {};
  */
 function startPeriodicRefresh() {
 	function checkOnce() {
-		var startTime = Date.now();
-		var reqId = uuidv4();
-		log.trace({req_id: reqId}, 'start periodic check');
-
 		agent.checkAndRefresh(function doneCheck(err) {
-			log.debug(
-				{
-					err: err,
-					req_id: reqId,
-					elapsedMs: Date.now() - startTime
-				},
-				'done periodic check');
-
 			setTimeout(checkOnce, config.pollInterval);
 		});
 	}
