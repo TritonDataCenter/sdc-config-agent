@@ -22,10 +22,12 @@ JSSTYLE_FILES	 = $(JS_FILES)
 JSSTYLE_FLAGS    = -t 4 -o doxygen
 SMF_MANIFESTS_IN = smf/manifests/config-agent.xml.in
 
-NODE_PREBUILT_VERSION=v0.10.26
+NODE_PREBUILT_VERSION=v0.10.48
 ifeq ($(shell uname -s),SunOS)
-	NODE_PREBUILT_TAG=zone
-	# Allow building on a SmartOS image other than sdc-smartos/1.6.3.
+	NODE_PREBUILT_TAG=gz
+	# For now use an sdcnode built for smartos@1.6.3, even though this
+	# component builds on multiarch@15.4.1. See TRITON-177 to update when
+	# an appropriate sdcnode build is available.
 	NODE_PREBUILT_IMAGE=fd2cc906-8938-11e3-beab-4359c665ac99
 endif
 
@@ -36,6 +38,7 @@ ifeq ($(shell uname -s),SunOS)
 else
 	NPM_EXEC :=
 	NPM = npm
+	NODE = node
 endif
 include ./tools/mk/Makefile.smf.defs
 
@@ -45,7 +48,7 @@ include ./tools/mk/Makefile.smf.defs
 #
 .PHONY: all
 all: $(SMF_MANIFESTS) | $(NPM_EXEC)
-	$(NPM) install && ./node_modules/.bin/kthxbai
+	$(NPM) install && $(NODE) ./node_modules/.bin/kthxbai
 
 DISTCLEAN_FILES+=node_modules
 

@@ -1,5 +1,9 @@
 # sdc-config-agent changelog
 
+## 1.6.2
+
+- [TOOLS-1983] Use an sdcnode built for the GZ, and bump to latest node v0.10.
+
 ## 1.6.1
 
 - [TRITON-138] Avoid setInterval in polling in case the process (e.g. calling
