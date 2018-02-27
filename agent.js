@@ -135,7 +135,8 @@ async.waterfall([
 				// Allow the config file to specify the
 				// instance UUID(s). This is used for load
 				// testing.
-				if (config.instances.length === 0) {
+				if (!config.instances ||
+				    config.instances.length === 0) {
 					config.instances = [ zonename ];
 				}
 			}
