@@ -6,70 +6,143 @@
 #
 
 #
-# Copyright (c) 2014, Joyent, Inc.
+# Copyright (c) 2018, Joyent, Inc.
 #
 
-###############################################################################
-# Due to race conditions for dependent services, this script will first run
-# the agent in synchronous mode, then fork an agent process in the background.
-###############################################################################
+#
+# Start the config-agent.
+#
+# This starter script ensures that a first time synchronous run completes,
+# i.e. that the config-agent has at least rendered the `sapi_template`s once.
+# This allows SMF services in this zone to depend on the "config-agent" SMF
+# service to ensure they have their config files before starting.
+#
+# If this is not a first run, then startup will make 3 attempts at a
+# synchronous run before continuing.
+#
 
 set -o xtrace
+
+
+# ---- globals
 
 DIR=$(cd $(dirname $(readlink -f $0))/../ >/dev/null; pwd)
 EXEC="$DIR/build/node/bin/node $DIR/agent.js"
 
-SAPI_URL=
-. /lib/sdc/config.sh
-load_sdc_config
+# Default config path for non-global zone instances.
+DEFAULT_NGZ_CONFIG_FILE=$DIR/etc/config.json
+CONFIG_FILE=
 
-# compute node
-if [[ -n ${CONFIG_sapi_domain} ]]; then
-   SAPI_URL=http://${CONFIG_sapi_domain}
-elif [[ -n ${CONFIG_datacenter_name} && -n ${CONFIG_dns_domain} ]]; then
-   SAPI_URL=http://sapi.${CONFIG_datacenter_name}.${CONFIG_dns_domain}
-else
-    # regular zone with mdata-get
-    SAPI_URL=$(/usr/sbin/mdata-get sapi-url)
-fi
+# Ideally this should come from the configured 'pollInterval'. For now we use
+# the same value as the default config-agent pollInterval.
+POLL_INTERVAL_S=120
 
-if [[ -n $SAPI_URL ]]; then
+SMF_INST=${SMF_FMRI##svc:*:}
+RUN_DIR=/var/run/config-agent-$SMF_INST
+FIRST_RUN_FILE=$RUN_DIR/first-run
+
+
+# ---- support functions
+
+function fatal
+{
+    echo "$0: fatal error: $*"
+    exit 1
+}
+
+function usage
+{
+    echo "Usage: $0 [-h | -f CONFIG-FILE]"
+}
+
+
+# ---- mainline
+
+while getopts "hf:" opt
+do
+    case "$opt" in
+        h)
+            usage
+            exit 0
+            ;;
+        f)
+            CONFIG_FILE=$OPTARG
+            ;;
+        *)
+            usage
+            exit 1
+            ;;
+    esac
+done
+
+
+# Determine the config details with which to exec config-agent.
+ZONENAME=$(zonename)
+if [[ "$ZONENAME" == "global" ]]; then
+    SAPI_URL=
+    . /lib/sdc/config.sh
+    load_sdc_config
+
+    if [[ -n ${CONFIG_sapi_domain} ]]; then
+        SAPI_URL=http://${CONFIG_sapi_domain}
+    elif [[ -n ${CONFIG_datacenter_name} && -n ${CONFIG_dns_domain} ]]; then
+        SAPI_URL=http://sapi.${CONFIG_datacenter_name}.${CONFIG_dns_domain}
+    else
+        fatal "could not determine SAPI URL from node config"
+    fi
     EXEC="$EXEC --sapi-url $SAPI_URL"
+
+    if [[ -n "$CONFIG_FILE" ]]; then
+        EXEC="$EXEC -f $CONFIG_FILE"
+    fi
+else
+    # Regular zone with mdata-get.
+    SAPI_URL=$(/usr/sbin/mdata-get sapi-url)
+    if [[ -n $SAPI_URL ]]; then
+        EXEC="$EXEC --sapi-url $SAPI_URL"
+    fi
+
+    if [[ -n "$CONFIG_FILE" ]]; then
+        EXEC="$EXEC -f $CONFIG_FILE"
+    else
+        EXEC="$EXEC -f $DEFAULT_NGZ_CONFIG_FILE"
+    fi
 fi
 
-# default config for zone instances
-if [[ -f $DIR/etc/config.json ]]; then
-    EXEC="$EXEC -f $DIR/etc/config.json"
-fi
 
-RUN_FILE=/var/tmp/.ran_config_agent
-RUN_EXISTS=0
-if [[ -e $RUN_FILE ]]; then
-    RUN_EXISTS=1
+RAN_ONCE=0
+if [[ -e $FIRST_RUN_FILE ]]; then
+    RAN_ONCE=1
 fi
+echo "$0: start sync mode attempts (RAN_ONCE=$RAN_ONCE)"
 
-echo 'Attempting synchronous mode until success.'
 COUNT=0
 SUCCESS=1
 while [[ $SUCCESS != 0 ]]; do
-
-    if [[ $RUN_EXISTS == 1 ]] && [[ $COUNT -gt 2 ]]; then
-        echo 'Exceeded tries.  Agent has successful previous run, continuing...'
+    if [[ $RAN_ONCE == 1 ]] && [[ $COUNT -gt 2 ]]; then
+        echo "$0: failed $COUNT sync attempts, agent has successful" \
+            "previous run, continuing"
         break;
     fi
 
-    $EXEC -s -t 30
+    # Set a timeout of the full poll interval as a balance between (a) actually
+    # retrying if this hangs and (b) not dogpiling in SAPI if it is overloaded.
+    $EXEC -s -t $POLL_INTERVAL_S
     SUCCESS=$?
     if [[ $SUCCESS != 0 ]]; then
-        echo 'Failed to run the agent in synchronous mode.  Sleeping...'
-        sleep 1;
+        DELAY=$(( RANDOM % $POLL_INTERVAL_S ))
+        echo "$0: failed sync attempt (COUNT=$COUNT), retrying in ${DELAY}s"
+        sleep $DELAY
     fi
     let COUNT=COUNT+1
 done
+mkdir -p "$(dirname $FIRST_RUN_FILE)"
+touch $FIRST_RUN_FILE
 
-echo 'Starting the agent in daemon mode.'
-touch $RUN_FILE
+
+echo "$0: starting config-agent in daemon mode"
 $EXEC &
+
 
 # Capture to be able to send refresh signal
 DAEMON_PID=$!

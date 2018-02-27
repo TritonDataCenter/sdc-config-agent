@@ -66,22 +66,31 @@ if [[ "$ZONEUUID" == "global" ]]; then
     baseDir=/opt/smartdc/agents/lib/node_modules/config-agent
 fi
 
-
 # Clean and rsync.
 if [[ $(uname -s) == "SunOS" ]]; then
     # Clean node_modules everytime because that's preferred and we can
     # use the binary .node files from this plat.
     ssh $NODE rm -rf $baseDir/node_modules
 fi
-for f in agent.js bin cmd lib Makefile node_modules npm package.json smf; do
-    rsync -av ${TOP}/$f $NODE:$baseDir/ $extraOpts
-done
 
+rsync -av ${TOP}/ \
+    $NODE:$baseDir/ \
+    $extraOpts \
+    --exclude .git/ \
+    --exclude /boot/ \
+    --exclude /build/ \
+    --exclude /deps/ \
+    --exclude /etc/ \
+    --exclude /tmp/
 
 # Restart config-agent.
-state=$(ssh ${NODE} svcs -z ${ZONEUUID} -H -o state config-agent)
-if [[ "$state" == "maintenance" ]]; then
-    ssh ${NODE} svcadm -z ${ZONEUUID} clear config-agent
+# This block is written to work with a config-agent service that has multiple
+# instances, as is used for load testing (see tools/loadtest/...).
+FMRI=svc:/smartdc/application/config-agent
+if ssh ${NODE} svcs -z ${ZONEUUID} -H -o state $FMRI | grep maintenance >/dev/null; then
+    echo "Clearing config-agent service"
+    ssh ${NODE} svcadm -z ${ZONEUUID} clear $FMRI
 else
-    ssh ${NODE} svcadm -z ${ZONEUUID} restart config-agent
+    echo "Restarting config-agent service"
+    ssh ${NODE} svcadm -z ${ZONEUUID} restart $FMRI
 fi

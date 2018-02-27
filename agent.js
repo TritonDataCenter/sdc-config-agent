@@ -119,8 +119,13 @@ async.waterfall([
 
 			zonename = zonename_;
 			if (zonename !== 'global') {
-				config.instances = [ zonename ];
-			} // else TODO AGENT-732
+				// Allow the config file to specify the
+				// instance UUID(s). This is used for load
+				// testing.
+				if (config.instances.length === 0) {
+					config.instances = [ zonename ];
+				}
+			}
 
 			autoMetadata.ZONENAME = zonename;
 
@@ -247,7 +252,7 @@ async.waterfall([
 						+ 'checkAndRefresh failure');
 				} else {
 					log.info('synchronous agent '
-						+ 'checkAndRefresh complete');
+						+ 'checkAndRefresh success');
 				}
 				cb(err);
 			});

@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<!DOCTYPE service_bundle SYSTEM "/usr/share/lib/xml/dtd/service_bundle.dtd.1">
+
+<service_bundle type="manifest" name="smartdc-config-agent">
+<service name="smartdc/application/config-agent" type="service" version="1">
+
+    <dependency name="network" grouping="require_all" restart_on="error" type="service">
+        <service_fmri value="svc:/network/physical" />
+    </dependency>
+    <dependency name="filesystem" grouping="require_all" restart_on="error" type="service">
+        <service_fmri value="svc:/system/filesystem/local" />
+    </dependency>
+
+    <exec_method type="method" name="start" exec="/opt/smartdc/config-agent/bin/agent.sh -f /opt/smartdc/config-agent/etc/%{config-agent/id}/config.json" timeout_seconds="0" />
+    <exec_method type="method" name="stop" exec=":kill" timeout_seconds="30" />
+    <exec_method type="method" name="refresh" exec=":kill -HUP" timeout_seconds="30" />
+
+    <!-- instances go here -->

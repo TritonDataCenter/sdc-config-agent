@@ -1,0 +1,9 @@
+
+    <stability value='Unstable' />
+
+    <template>
+        <common_name><loctext xml:lang="C">Triton Config Agent load testing</loctext></common_name>
+    </template>
+
+</service>
+</service_bundle>
