@@ -24,11 +24,11 @@ SMF_MANIFESTS_IN = smf/manifests/config-agent.xml.in
 
 NODE_PREBUILT_VERSION=v0.10.48
 ifeq ($(shell uname -s),SunOS)
+	# config-agent runs in zones *and* in the GZ, so we need to make sure we use
+	# a node runtime that is able to run in the GZ (those runtimes can run in
+	# zones).
 	NODE_PREBUILT_TAG=gz
-	# For now use an sdcnode built for smartos@1.6.3, even though this
-	# component builds on multiarch@15.4.1. See TRITON-177 to update when
-	# an appropriate sdcnode build is available.
-	NODE_PREBUILT_IMAGE=fd2cc906-8938-11e3-beab-4359c665ac99
+	NODE_PREBUILT_IMAGE=18b094b0-eb01-11e5-80c1-175dac7ddf02
 endif
 
 
