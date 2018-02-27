@@ -101,13 +101,26 @@ var autoMetadata = config.autoMetadata = {};
  * for config updates from SAPI and refreshing manifests/config files.
  */
 function startPeriodicRefresh() {
+	var delay;
+
+	// Return a random delay between 0.5*pollInterval and 1.5*pollInterval.
+	function getDelay() {
+		var min = config.pollInterval * 0.5;
+		var max = config.pollInterval * 1.5;
+		return Math.floor(Math.random() * (max - min + 1)) + min;
+	}
+
 	function checkOnce() {
 		agent.checkAndRefresh(function doneCheck(err) {
-			setTimeout(checkOnce, config.pollInterval);
+			delay = getDelay();
+			log.trace({delay: delay}, 'schedule checkAndRefresh');
+			setTimeout(checkOnce, delay);
 		});
 	}
 
-	setTimeout(checkOnce, config.pollInterval);
+	delay = getDelay();
+	log.trace({delay: delay}, 'schedule checkAndRefresh');
+	setTimeout(checkOnce, delay);
 }
 
 async.waterfall([

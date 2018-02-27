@@ -116,6 +116,15 @@ if [[ -e $FIRST_RUN_FILE ]]; then
 fi
 echo "$0: start sync mode attempts (RAN_ONCE=$RAN_ONCE)"
 
+
+# Note: There is a possible dogpile-on-SAPI scenario for this first sync mode
+# config-agent run, if a large number of config-agents are restarted at the same
+# time -- e.g. all GZ config-agents for a large number of CNs.
+#
+# Adding an initial first-sync-run delay for all config-agents is undesirable
+# however, because it forever means slower Triton instance restarts.
+# Instead the expectation is that SAPI can cope with rate-limiting.
+
 COUNT=0
 SUCCESS=1
 while [[ $SUCCESS != 0 ]]; do

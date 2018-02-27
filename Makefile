@@ -5,7 +5,7 @@
 #
 
 #
-# Copyright (c) 2015, Joyent, Inc.
+# Copyright (c) 2018, Joyent, Inc.
 #
 
 #
@@ -19,7 +19,7 @@ JS_FILES	:= $(shell ls *.js) $(shell find cmd lib -name '*.js')
 JSL_CONF_NODE	 = tools/jsl.node.conf
 JSL_FILES_NODE   = $(JS_FILES)
 JSSTYLE_FILES	 = $(JS_FILES)
-JSSTYLE_FLAGS    = -t 4 -o doxygen
+JSSTYLE_FLAGS    = -t 4 -o doxygen,unparenthesized-return=0
 SMF_MANIFESTS_IN = smf/manifests/config-agent.xml.in
 
 NODE_PREBUILT_VERSION=v0.10.48
