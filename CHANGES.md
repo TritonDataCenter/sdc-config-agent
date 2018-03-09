@@ -1,5 +1,11 @@
 # sdc-config-agent changelog
 
+## 1.6.3
+
+- [TRITON-220] Fix accidental breakage in TRITON-184 that could cause SAPI
+  zone deadlock on reboot of the sapi zone, and if the whole headnode rebooted
+  would then cause deadlock of all config-agents on that headnode.
+
 ## 1.6.2
 
 - [TOOLS-1983] Use an sdcnode built for the GZ, and bump to latest node v0.10.
