@@ -38,8 +38,8 @@ CONFIG_FILE=
 POLL_INTERVAL_S=120
 
 SMF_INST=${SMF_FMRI##svc:*:}
-RUN_DIR=/var/run/config-agent-$SMF_INST
-FIRST_RUN_FILE=$RUN_DIR/first-run
+RUN_DIR=/var/config-agent
+FIRST_RUN_FILE=$RUN_DIR/$SMF_INST.first-run
 
 
 # ---- support functions
