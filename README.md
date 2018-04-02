@@ -5,7 +5,7 @@
 -->
 
 <!--
-    Copyright (c) 2014, Joyent, Inc.
+    Copyright (c) 2018, Joyent, Inc.
 -->
 
 # sdc-config-agent
@@ -23,3 +23,17 @@ config files, if changed. More details in the SAPI documentation.
 This repository is part of the Joyent SmartDataCenter project (SDC).  For
 contribution guidelines, issues, and general documentation, visit the main
 [SDC](http://github.com/joyent/sdc) project page.
+
+## `auto.*` variables
+
+config-agent takes care of discovering and providing a handful of variables
+about the local environment. They are:
+
+- `auto.DATACENTER_NAME`, the name of the datacenter
+- `auto.SERVER_UUID`, the UUID of the Computer Node
+- `auto.ZONENAME`, the name of the running zone (`"global"` when running in the
+  Global Zone)
+- `auto.INSTANCE_UUID`, the instance UUID in SAPI for the instance whose
+  template config-agent is rendering
+- `auto.<TAG>_IP`, the IP address on the NIC with tag `<TAG>` or `<TAG>_RACK<NUM>`
+- `auto.PRIMARY_IP`, in a zone, this is the IP address of the primary NIC

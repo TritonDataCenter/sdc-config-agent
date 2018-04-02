@@ -19,8 +19,10 @@
 var assert = require('assert-plus');
 var async = require('async');
 var fs = require('fs');
+var jsprim = require('jsprim');
 var optimist = require('optimist');
 var util = require('./lib/common/util');
+var vasync = require('vasync');
 
 var Agent = require('./lib/agent/agent');
 var Logger = require('bunyan');
@@ -46,6 +48,7 @@ var ARGV = optimist.options({
 	}
 }).argv;
 
+var VNIC_NAME_RE = /^([a-zA-Z0-9_]{0,31})[0-9]+$/;
 
 var config;
 var configPath;
@@ -123,6 +126,158 @@ function startPeriodicRefresh() {
 	setTimeout(checkOnce, delay);
 }
 
+function setNicTag(nic_tag, ip) {
+	var NIC_TAG = nic_tag.toUpperCase();
+
+	autoMetadata[NIC_TAG + '_IP'] = ip;
+
+	/*
+	 * If there is a nic tag of the form <name>_RACK<number>,
+	 * it will override any similarly named nic tag (e.g.
+	 * "MANTA_RACK##" will override "MANTA" nic tags).
+	 */
+	if (NIC_TAG.search(/^[A-Z]+_RACK\d+$/) === 0) {
+		NIC_TAG = NIC_TAG.split('_')[0];
+		autoMetadata[NIC_TAG + '_IP'] = ip;
+	}
+}
+
+/**
+ * Mapping NIC tags to IPs is a bit messier to do in the Global Zone. The
+ * sysinfo output has two relevant arrays: "Network Interfaces", which
+ * represents physical interfaces (including aggregations) and their NIC
+ * tags, and "Virtual Network Interfaces", which is VNICs created with
+ * dladm(1M).
+ *
+ * For the most part, each NIC tag that has an IP address will get its
+ * own VNIC (named after the NIC tag). This means that we largely just
+ * need to strip the ending digit to get at the NIC tag for that IP.
+ *
+ * The exception is the admin IP: it doesn't get placed onto its own VNIC
+ * but instead gets placed directly on the physical interface that has
+ * the admin tag. We therefore need to check for IPs on the physical
+ * interfaces and use it when the NIC looks like an admin interface.
+ */
+function processGZNicTags(sysinfo) {
+	var pnics = sysinfo['Network Interfaces'];
+	var vnics = sysinfo['Virtual Network Interfaces'];
+	var ptags = {};
+
+	jsprim.forEachKey(pnics, function (name, pnic) {
+		pnic['NIC Names'].forEach(function (nic_tag) {
+			ptags[nic_tag] = name;
+
+			if (!pnic.ip4addr) {
+				return;
+			}
+
+			if (nic_tag === 'admin' || nic_tag.indexOf('admin_') === 0) {
+				setNicTag(nic_tag, pnic.ip4addr);
+			}
+		});
+	});
+
+	jsprim.forEachKey(vnics, function (name, vnic) {
+		var m = VNIC_NAME_RE.exec(name);
+		if (m === null) {
+			return;
+		}
+
+		if (!vnic.ip4addr) {
+			return;
+		}
+
+		if (ptags[m[1]] !== vnic['Host Interface']) {
+			/*
+			 * Under normal Triton operation this shouldn't happen, but if an
+			 * operator is running `dladm create-vnic` in the GZ themselves
+			 * we could arrive here.
+			 */
+			return;
+		}
+
+		setNicTag(m[1], vnic.ip4addr);
+	});
+}
+
+function setGlobalZoneAutoMetadata(callback) {
+	util.getSysinfo({ log: log }, function (sErr, sysinfo) {
+		if (sErr) {
+			callback(sErr);
+			return;
+		}
+
+		autoMetadata.SERVER_UUID = sysinfo['UUID'];
+		autoMetadata.DATACENTER_NAME = sysinfo['Datacenter Name'];
+
+		processGZNicTags(sysinfo);
+
+		callback();
+	});
+}
+
+function setInZoneAutoMetadata(callback) {
+	vasync.pipeline({
+		input: null,
+		funcs: [
+			function getServerUuidIZ(_, cb) {
+				util.mdataGet({
+					log: log,
+					key: 'sdc:server_uuid'
+				}, function (err, serverUuid) {
+					if (err) {
+						cb(err);
+						return;
+					}
+
+					autoMetadata.SERVER_UUID = serverUuid;
+
+					cb();
+				});
+			},
+			function getDatacenterNameIZ(_, cb) {
+				util.mdataGet({
+					log: log,
+					key: 'sdc:datacenter_name'
+				}, function (err, dcName) {
+					if (err) {
+						cb(err);
+						return;
+					}
+
+					autoMetadata.DATACENTER_NAME = dcName;
+
+					cb();
+				});
+			},
+			function getNicsIZ(_, cb) {
+				util.mdataGet({
+					log: log,
+					key: 'sdc:nics'
+				}, function (err, nicsJson) {
+					if (err) {
+						cb(err);
+						return;
+					}
+
+					var nics = JSON.parse(nicsJson);
+					for (var i = 0; i < nics.length; i++) {
+						var nic = nics[i];
+						if (i === 0) {
+							autoMetadata.PRIMARY_IP = nic.ip;
+						}
+						if (nic.nic_tag) {
+							setNicTag(nic.nic_tag, nic.ip);
+						}
+					}
+
+					cb();
+				});
+			}
+		]
+	}, callback);
+}
+
 async.waterfall([
 	// TODO(refactor) move this to Agent.init
 	function gatherInsts(cb) {
@@ -147,6 +302,14 @@ async.waterfall([
 		});
 	},
 
+	function gatherAutoMetadata(cb) {
+		if (zonename === 'global') {
+			setGlobalZoneAutoMetadata(cb);
+		} else {
+			setInZoneAutoMetadata(cb);
+		}
+	},
+
 	// For zone instances, make sure we always default to mdata-get sapi-url
 	// if the value was never passed
 	function ensureSapiUrl(cb) {
@@ -164,68 +327,6 @@ async.waterfall([
 			cb();
 		});
 	},
-
-	// TODO(refactor) move this to Agent.init
-	function autoMetadataIps(cb) {
-		if (zonename === 'global') {
-			return (cb());
-		}
-
-		var mdataOpts = {log: log, key: 'sdc:nics'};
-		util.mdataGet(mdataOpts, function (err, nicsJson) {
-			if (err) {
-				return (cb(err));
-			}
-
-			var nics = JSON.parse(nicsJson);
-			for (var i = 0; i < nics.length; i++) {
-				var nic = nics[i];
-				if (i === 0) {
-					autoMetadata.PRIMARY_IP = nic.ip;
-				}
-				if (nic.nic_tag) {
-					var NIC_TAG = nic.nic_tag.toUpperCase();
-					autoMetadata[NIC_TAG + '_IP'] = nic.ip;
-
-					/*
-					 * If there is a nic tag of the form <name>_RACK<number>,
-					 * it will override any similarly named nic tag (e.g.
-					 * "MANTA_RACK##" will override "MANTA" nic tags).
-					 */
-					if (NIC_TAG.search(/^[A-Z]+_RACK\d+$/) === 0) {
-						NIC_TAG = NIC_TAG.split('_')[0];
-						autoMetadata[NIC_TAG + '_IP'] = nic.ip;
-					}
-				}
-			}
-
-			cb();
-		});
-	},
-
-	function autoMetadataServerUuid(cb) {
-		if (zonename === 'global') {
-			util.getSysinfo({log: log}, function (err, sysinfo) {
-				if (err) {
-					cb(err);
-				} else {
-					autoMetadata.SERVER_UUID = sysinfo.UUID;
-					cb();
-				}
-			});
-		} else {
-			var mdataOpts = {log: log, key: 'sdc:server_uuid'};
-			util.mdataGet(mdataOpts, function (err, serverUuid) {
-				if (err) {
-					cb(err);
-				} else {
-					autoMetadata.SERVER_UUID = serverUuid;
-					cb();
-				}
-			});
-		}
-	},
-
 	function (cb) {
 		agent = new Agent(config, log);
 

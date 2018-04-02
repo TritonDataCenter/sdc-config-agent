@@ -1,5 +1,11 @@
 # sdc-config-agent changelog
 
+## 1.7.0
+
+- [TRITON-262] Add support for `auto.INSTANCE_UUID`
+- [TRITON-291] Add support for `auto.DATACENTER_NAME`
+- [TRITON-298] Add support for `auto.ADMIN_IP` in the global zone
+
 ## 1.6.3
 
 - [TRITON-220] Fix accidental breakage in TRITON-184 that could cause SAPI
