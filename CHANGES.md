@@ -1,5 +1,9 @@
 # sdc-config-agent changelog
 
+## 1.7.1
+
+- [TRITON-305] Fix breakage in 1.7.0 that breaks config-agents in zones.
+
 ## 1.7.0
 
 - [TRITON-262] Add support for `auto.INSTANCE_UUID`
