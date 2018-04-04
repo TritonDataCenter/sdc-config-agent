@@ -275,9 +275,9 @@ function setInZoneAutoMetadata(callback) {
 				});
 			}
 		]
-        }, function doneInZoneAutoMetadata(err) {
-            callback(err);
-        });
+	}, function doneInZoneAutoMetadata(err) {
+		callback(err);
+	});
 }
 
 async.waterfall([
