@@ -126,19 +126,32 @@ function startPeriodicRefresh() {
 	setTimeout(checkOnce, delay);
 }
 
+/*
+ * If the nic tag is of the form <name>_RACK_<rack name>, it will override any
+ * similarly named nic tag (e.g. "MANTA_RACK_E05" will override "MANTA" nic
+ * tags).
+ */
 function setNicTag(nic_tag, ip) {
 	var NIC_TAG = nic_tag.toUpperCase();
+	var tag = NIC_TAG;
+	var ips_key;
 
-	autoMetadata[NIC_TAG + '_IP'] = ip;
+	/* _RACK override */
+	if (NIC_TAG.search(/^[A-Z]+_RACK_[A-Z0-9_-]+$/) === 0) {
+		tag = NIC_TAG.split('_')[0];
+	}
 
-	/*
-	 * If there is a nic tag of the form <name>_RACK<number>,
-	 * it will override any similarly named nic tag (e.g.
-	 * "MANTA_RACK##" will override "MANTA" nic tags).
-	 */
-	if (NIC_TAG.search(/^[A-Z]+_RACK\d+$/) === 0) {
-		NIC_TAG = NIC_TAG.split('_')[0];
-		autoMetadata[NIC_TAG + '_IP'] = ip;
+	ip = ip.split('/')[0];
+
+	autoMetadata[tag + '_IP'] = ip;
+
+	ips_key = tag + '_IPS';
+	if (!autoMetadata[ips_key]) {
+		autoMetadata[ips_key] = [];
+	}
+
+	if (autoMetadata[ips_key].indexOf(ip) === -1) {
+		autoMetadata[ips_key].push(ip);
 	}
 }
 
@@ -171,6 +184,9 @@ function processGZNicTags(sysinfo) {
 				return;
 			}
 
+			/*
+			 * Only the admin IP should be plumbed on a physical nic.
+			 */
 			if (nic_tag === 'admin' || nic_tag.indexOf('admin_') === 0) {
 				setNicTag(nic_tag, pnic.ip4addr);
 			}
@@ -266,7 +282,15 @@ function setInZoneAutoMetadata(callback) {
 						if (i === 0) {
 							autoMetadata.PRIMARY_IP = nic.ip;
 						}
-						if (nic.nic_tag) {
+
+						/*
+						 * Loop through the 'ips' first so that the address in
+						 * 'ip' will override any previously entered values.
+						 */
+						if (nic.nic_tag && nic.ips && Array.isArray(nic.ips)) {
+							nic.ips.forEach(function (ip) {
+								setNicTag(nic.nic_tag, ip);
+							});
 							setNicTag(nic.nic_tag, nic.ip);
 						}
 					}
