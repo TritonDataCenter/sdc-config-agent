@@ -6,7 +6,7 @@
 #
 
 #
-# Copyright (c) 2015, Joyent, Inc.
+# Copyright (c) 2018, Joyent, Inc.
 #
 
 if [[ -n "$TRACE" ]]; then
@@ -15,6 +15,11 @@ if [[ -n "$TRACE" ]]; then
 fi
 set -o errexit
 set -o pipefail
+
+if [[ -z "$npm_config_smfdir" || ! -d "$npm_config_smfdir" ]]; then
+    echo "Skipping config-agent postinstall (assuming build-time install)"
+    exit 0
+fi
 
 DIR=`dirname $0`
 ROOT=$(cd `dirname $0`/../ 2>/dev/null && pwd)
