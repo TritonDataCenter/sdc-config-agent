@@ -1,7 +1,7 @@
 {
     "name": "config-agent",
     "description": "SmartDataCenter Config Agent",
-    "version": "1.8.0",
+    "version": "1.8.1",
     "author": "Joyent (joyent.com)",
     "dependencies": {
         "assert-plus": "1.0.0",
