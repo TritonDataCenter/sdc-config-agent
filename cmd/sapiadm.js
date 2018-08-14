@@ -6,7 +6,7 @@
  */
 
 /*
- * Copyright (c) 2014, Joyent, Inc.
+ * Copyright (c) 2018, Joyent, Inc.
  */
 
 /*
@@ -20,7 +20,7 @@ var cp = require('child_process');
 var fs = require('fs');
 var os = require('os');
 var path = require('path');
-var sdc = require('sdc-clients');
+var sdcClients = require('sdc-clients');
 var util = require('util');
 
 var mod_util = require('../lib/common/util');
@@ -124,8 +124,9 @@ function initGlobalZone(cb) {
 		var config = JSON.parse(stdout);
 		var sapi_url = 'http://' + config.sapi_domain;
 
-		var client = new sdc.SAPI({
+		var client = new sdcClients.SAPI({
 			url: sapi_url,
+			version: '~2',
 			log: self.log,
 			agent: false
 		});
@@ -145,8 +146,9 @@ function initNonGlobalZone(cb) {
 
 		var config = JSON.parse(contents);
 
-		var client = new sdc.SAPI({
+		var client = new sdcClients.SAPI({
 			url: config.sapi.url,
+			version: '~2',
 			log: self.log,
 			agent: false
 		});
