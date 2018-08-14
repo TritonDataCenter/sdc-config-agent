@@ -18,6 +18,7 @@
 
 var assert = require('assert-plus');
 var async = require('async');
+var bunyan = require('bunyan');
 var fs = require('fs');
 var jsprim = require('jsprim');
 var optimist = require('optimist');
@@ -25,8 +26,6 @@ var util = require('./lib/common/util');
 var vasync = require('vasync');
 
 var Agent = require('./lib/agent/agent');
-var Logger = require('bunyan');
-var restify = require('restify');
 
 
 var ARGV = optimist.options({
@@ -80,14 +79,14 @@ if (ARGV['sapi-url']) {
 
 assert.object(config, 'config');
 assert.string(config.logLevel, 'config.logLevel');
-assert.number(config.pollInterval, 'config.pollInterval');
+assert.finite(config.pollInterval, 'config.pollInterval');
 assert.optionalObject(config.sapi, 'config.sapi');
 
-var log = new Logger({
+var log = bunyan.createLogger({
 	name: 'config-agent',
 	level: config.logLevel,
 	stream: process.stdout,
-	serializers: restify.bunyan.serializers
+	serializers: bunyan.stdSerializers
 });
 
 
