@@ -16,10 +16,12 @@ fi
 set -o errexit
 set -o pipefail
 
-if [[ -z "$npm_config_smfdir" || ! -d "$npm_config_smfdir" ]]; then
-    echo "Skipping config-agent postinstall (assuming build-time install)"
+
+if [[ "${SDC_AGENT_SKIP_LIFECYCLE:-no}" = "yes" ]]; then
+    printf 'Skipping lifecycle script (SDC_AGENT_SKIP_LIFECYCLE=yes): $*\n' >&2
     exit 0
 fi
+
 
 DIR=`dirname $0`
 ROOT=$(cd `dirname $0`/../ 2>/dev/null && pwd)

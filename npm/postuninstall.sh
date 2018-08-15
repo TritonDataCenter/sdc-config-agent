@@ -6,8 +6,13 @@
 #
 
 #
-# Copyright (c) 2015, Joyent, Inc.
+# Copyright (c) 2018, Joyent, Inc.
 #
+
+if [[ "${SDC_AGENT_SKIP_LIFECYCLE:-no}" = "yes" ]]; then
+    printf 'Skipping lifecycle script (SDC_AGENT_SKIP_LIFECYCLE=yes).\n' >&2
+    exit 0
+fi
 
 export SMFDIR=$npm_config_smfdir
 
