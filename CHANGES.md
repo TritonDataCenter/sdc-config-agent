@@ -1,5 +1,14 @@
 # sdc-config-agent changelog
 
+## 1.8.1
+
+- TRITON-691 update config-agent's node to v6
+
+## 1.8.0
+
+- TRITON-508 config-agent autometadata should contain an array of IPs for each nic
+- TRITON-509 config-agent should use `<tag>_rack_<rackid>` as rack aware namespace
+
 ## 1.7.1
 
 - [TRITON-305] Fix breakage in 1.7.0 that breaks config-agents in zones.

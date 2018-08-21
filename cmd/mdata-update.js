@@ -6,7 +6,7 @@
  */
 
 /*
- * Copyright (c) 2014, Joyent, Inc.
+ * Copyright (c) 2018, Joyent, Inc.
  */
 
 /*
@@ -17,7 +17,7 @@ var async = require('async');
 var cp = require('child_process');
 var fs = require('fs');
 var optimist = require('optimist');
-var sdc = require('sdc-clients');
+var sdcClients = require('sdc-clients');
 
 var Logger = require('bunyan');
 
@@ -37,8 +37,9 @@ var LOG = new Logger({
 var CFG = '/opt/smartdc/config-agent/etc/config.json';
 var config = JSON.parse(fs.readFileSync(CFG, 'utf8'));
 
-var SAPI = new sdc.SAPI({
+var SAPI = new sdcClients.SAPI({
 	url: config.sapi.url,
+	version: '~2',
 	log: LOG,
 	agent: false
 });
