@@ -22,7 +22,7 @@ JSSTYLE_FILES	 = $(JS_FILES)
 JSSTYLE_FLAGS    = -t 4 -o doxygen,unparenthesized-return=0
 SMF_MANIFESTS_IN = smf/manifests/config-agent.xml.in
 
-NODE_PREBUILT_VERSION=v6.14.3
+NODE_PREBUILT_VERSION=v6.15.1
 ifeq ($(shell uname -s),SunOS)
 	# config-agent runs in zones *and* in the GZ, so we need to make sure we use
 	# a node runtime that is able to run in the GZ (those runtimes can run in
