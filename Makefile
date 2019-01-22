@@ -5,7 +5,7 @@
 #
 
 #
-# Copyright (c) 2018, Joyent, Inc.
+# Copyright (c) 2019, Joyent, Inc.
 #
 
 #
@@ -106,13 +106,13 @@ release: all deps docs $(SMF_MANIFESTS)
 
 .PHONY: publish
 publish: release
-	@if [[ -z "$(BITS_DIR)" ]]; then \
-		@echo "error: 'BITS_DIR' must be set for 'publish' target"; \
+	@if [[ -z "$(ENGBLD_BITS_DIR)" ]]; then \
+		echo "error: 'ENGBLD_BITS_DIR' must be set for 'publish' target"; \
 		exit 1; \
 	fi
-	mkdir -p $(BITS_DIR)/$(NAME)
-	cp $(TOP)/$(RELEASE_TARBALL) $(BITS_DIR)/$(NAME)/$(RELEASE_TARBALL)
-	cp $(TOP)/$(RELEASE_MANIFEST) $(BITS_DIR)/$(NAME)/$(RELEASE_MANIFEST)
+	mkdir -p $(ENGBLD_BITS_DIR)/$(NAME)
+	cp $(TOP)/$(RELEASE_TARBALL) $(ENGBLD_BITS_DIR)/$(NAME)/$(RELEASE_TARBALL)
+	cp $(TOP)/$(RELEASE_MANIFEST) $(ENGBLD_BITS_DIR)/$(NAME)/$(RELEASE_MANIFEST)
 
 
 include ./deps/eng/tools/mk/Makefile.deps
