@@ -31,16 +31,18 @@ ifeq ($(shell uname -s),SunOS)
 	NODE_PREBUILT_IMAGE=1ad363ec-3b83-11e8-8521-2f68a4a34d5d
 endif
 
+ENGBLD_REQUIRE := $(shell git submodule update --init deps/eng)
+include ./deps/eng/tools/mk/Makefile.defs
+TOP ?= $(error Unable to access eng.git submodule Makefiles.)
 
-include ./tools/mk/Makefile.defs
 ifeq ($(shell uname -s),SunOS)
-	include ./tools/mk/Makefile.node_prebuilt.defs
+	include ./deps/eng/tools/mk/Makefile.node_prebuilt.defs
 else
 	NPM_EXEC :=
 	NPM = npm
 	NODE = node
 endif
-include ./tools/mk/Makefile.smf.defs
+include ./deps/eng/tools/mk/Makefile.smf.defs
 
 
 #
@@ -50,7 +52,7 @@ include ./tools/mk/Makefile.smf.defs
 all: $(SMF_MANIFESTS) | $(NPM_EXEC)
 	$(NPM) install && $(NODE) ./node_modules/.bin/kthxbai
 
-DISTCLEAN_FILES+=node_modules
+DISTCLEAN_FILES+=node_modules $(NAME)-*.manifest
 
 
 #
@@ -60,9 +62,9 @@ DISTCLEAN_FILES+=node_modules
 TOP             := $(shell pwd)
 
 NAME			:= config-agent
-RELEASE_TARBALL := $(NAME)-pkg-$(STAMP).tar.bz2
+RELEASE_TARBALL := $(NAME)-pkg-$(STAMP).tar.gz
 RELEASE_MANIFEST := $(NAME)-pkg-$(STAMP).manifest
-RELSTAGEDIR     := /tmp/$(STAMP)
+RELSTAGEDIR     := /tmp/$(NAME)-$(STAMP)
 
 .PHONY: release
 release: all deps docs $(SMF_MANIFESTS)
@@ -89,7 +91,7 @@ release: all deps docs $(SMF_MANIFESTS)
 		$(RELSTAGEDIR)/$(NAME)/build/node/include \
 		$(RELSTAGEDIR)/$(NAME)/build/node/share
 	uuid -v4 > $(RELSTAGEDIR)/$(NAME)/image_uuid
-	(cd $(RELSTAGEDIR) && $(TAR) -jcf $(TOP)/$(RELEASE_TARBALL) *)
+	(cd $(RELSTAGEDIR) && $(TAR) -I pigz -cf $(TOP)/$(RELEASE_TARBALL) *)
 	cat $(TOP)/manifest.tmpl | sed \
 		-e "s/UUID/$$(cat $(RELSTAGEDIR)/$(NAME)/image_uuid)/" \
 		-e "s/NAME/$$(json name < $(TOP)/package.json)/" \
@@ -113,9 +115,9 @@ publish: release
 	cp $(TOP)/$(RELEASE_MANIFEST) $(BITS_DIR)/$(NAME)/$(RELEASE_MANIFEST)
 
 
-include ./tools/mk/Makefile.deps
+include ./deps/eng/tools/mk/Makefile.deps
 ifeq ($(shell uname -s),SunOS)
-	include ./tools/mk/Makefile.node_prebuilt.targ
+	include ./deps/eng/tools/mk/Makefile.node_prebuilt.targ
 endif
-include ./tools/mk/Makefile.smf.targ
-include ./tools/mk/Makefile.targ
+include ./deps/eng/tools/mk/Makefile.smf.targ
+include ./deps/eng/tools/mk/Makefile.targ

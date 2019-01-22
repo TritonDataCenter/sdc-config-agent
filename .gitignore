@@ -1,7 +1,8 @@
 /node_modules
 /tmp
 /npm-debug.log
-build
+/bits
+/build
 /docs/*.json
 /docs/*.html
 cscope.in.out
@@ -10,7 +11,7 @@ cscope.out
 /smf/manifests/*.xml
 *.swp
 sapi-pkg-master-*.tar.bz2
-config-agent-*.tar.bz2
+config-agent-*.tar.gz
 config-agent-*.manifest
 test/tests.log
 abandoned
