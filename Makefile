@@ -50,7 +50,13 @@ include ./deps/eng/tools/mk/Makefile.smf.defs
 #
 .PHONY: all
 all: $(SMF_MANIFESTS) | $(NPM_EXEC)
-	$(NPM) install && $(NODE) ./node_modules/.bin/kthxbai
+	$(NPM) install
+
+.PHONY: kthxbai
+kthxbai:
+	# Use global-style to not leak sub-deps of kthxbai in node_modules top-level.
+	$(NPM) --global-style install kthxbai@~0.4.0
+	$(NODE) ./node_modules/.bin/kthxbai
 
 DISTCLEAN_FILES+=node_modules $(NAME)-*.manifest
 
@@ -67,7 +73,7 @@ RELEASE_MANIFEST := $(NAME)-pkg-$(STAMP).manifest
 RELSTAGEDIR     := /tmp/$(NAME)-$(STAMP)
 
 .PHONY: release
-release: all deps docs $(SMF_MANIFESTS)
+release: all kthxbai docs $(SMF_MANIFESTS)
 	@echo "Building $(RELEASE_TARBALL)"
 	@mkdir -p $(RELSTAGEDIR)/$(NAME)/build
 	cp -r \
