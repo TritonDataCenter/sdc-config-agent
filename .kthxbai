@@ -32,7 +32,7 @@
 # TODO: Not sure all of these are safely removable.
 sdc-clients/tools
 sdc-clients/lib/*.javascript
-sdc-clients/lib/{amon,assertions,ca,cache,cnapi,dsapi,fwapi,imgapi,napi,papi,vmapi,usageapi}.js
+sdc-clients/lib/{amon,assertions,ca,cache,cnapi,fwapi,imgapi,napi,papi,vmapi,usageapi}.js
 sdc-clients/node_modules/{bunyan,clone,http-signature,libuuid,smartdc-auth,ufds,verror}
 
 # hogan.js

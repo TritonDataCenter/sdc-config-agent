@@ -1,5 +1,14 @@
 # sdc-config-agent changelog
 
+## 1.8.3
+
+- TRITON-1109 kthxbai usage changes to avoid build warnings due to TOOLS-2043.
+- TOOLS-2043 Change to new engbld system.
+
+## 1.8.2
+
+- TOOLS-2117 Bump sdcnode to v6.15.1
+
 ## 1.8.1
 
 - TRITON-691 update config-agent's node to v6
@@ -37,7 +46,7 @@
 
 ## 1.6.0
 
-- [AGENT-1086] Support network per rack Manta deployments by allowing 
+- [AGENT-1086] Support network per rack Manta deployments by allowing
   nic_tags with \<tag>_rackNN suffixes to override nic_tags with the same \<tag>
   (e.g "manta_rack99" overrides "manta").
 
