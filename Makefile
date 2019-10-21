@@ -5,7 +5,7 @@
 #
 
 #
-# Copyright (c) 2019, Joyent, Inc.
+# Copyright 2019 Joyent, Inc.
 #
 
 #
@@ -87,8 +87,6 @@ release: all kthxbai docs $(SMF_MANIFESTS)
 		$(TOP)/npm \
 		$(TOP)/smf \
 		$(RELSTAGEDIR)/$(NAME)
-	(git symbolic-ref HEAD | awk -F/ '{print $$3}' && git describe) \
-		> $(RELSTAGEDIR)/$(NAME)/describe
 	cp -PR $(NODE_INSTALL) $(RELSTAGEDIR)/$(NAME)/build/node
 	# Trim node
 	rm -rf \
