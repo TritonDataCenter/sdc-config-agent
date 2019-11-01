@@ -45,9 +45,6 @@ make print-BRANCH print-STAMP all release publish bits-upload''')
         }
         stage('agentsshar') {
             steps {
-                stage ('Starting ART job') {
-    build job: 'RunArtInTest', parameters: [[$class: 'StringParameterValue', name: 'systemname', value: systemname]]
-}
                 build(
                     job:'agentsshar',
                     wait: false,
