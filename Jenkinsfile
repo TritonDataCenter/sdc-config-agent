@@ -48,11 +48,12 @@ make print-BRANCH print-STAMP all release publish bits-upload''')
                 build(
                     job:'agentsshar',
                     wait: false,
+                    propagate: false,
                     parameters: [
                         [$class: 'StringParameterValue',
                         name: 'BUILDNUM',
                         value: env.BRANCH_NAME + ' master',
-                        propagate: false]
+                        ]
                     ])
             }
         }
