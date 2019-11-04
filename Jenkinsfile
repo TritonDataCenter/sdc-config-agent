@@ -45,8 +45,10 @@ make print-BRANCH print-STAMP all release publish bits-upload''')
         }
         stage('agentsshar') {
             steps {
+                // timf: we'd use 'master' rather than 'jenkinsfile' once
+                // the sdc-agents-installer change goes back
                 build(
-                    job:'agentsshar',
+                    job:'joyent-org/sdc-agents-installer/jenkinsfile',
                     wait: false,
                     propagate: false,
                     parameters: [
