@@ -8,7 +8,7 @@
  * Copyright 2019 Joyent, Inc.
  */
 
-@Library('jenkins-joylib@v1.0.1') _
+@Library('jenkins-joylib@v1.0.2') _
 
 pipeline {
 
@@ -44,12 +44,30 @@ make print-BRANCH print-STAMP all release publish bits-upload''')
             }
         }
         stage('agentsshar') {
-            // TODO: Consider complex handling of multiple branches
+            // For release branch builds, we'll wait for the
+            // sdc-agents-installer build to run on its own.
+            // Otherwise if we were to trigger a release-* branch build at this
+            // point, we can't guarantee all agent builds have completed.
+            // Eventually it would be good to have a pipeline that builds all
+            // agents in parallel, and then the agents-installer.
+            // For normal development, it's fine to always trigger the master
+            // sdc-agents-installer build.
             when {
-                branch 'master'
+                not {
+                    branch 'release-*'
+                }
             }
             steps {
-                build(job:'agentsshar', wait: false)
+                build(
+                    job:'joyent-org/sdc-agents-installer/master',
+                    wait: false,
+                    propagate: false,
+                    parameters: [
+                        [$class: 'StringParameterValue',
+                        name: 'BUILDNAME',
+                        value: env.BRANCH_NAME + ' master',
+                        ]
+                    ])
             }
         }
     }
