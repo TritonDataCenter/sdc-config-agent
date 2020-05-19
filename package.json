@@ -19,6 +19,9 @@
         "vasync": "1.6.3",
         "verror": "1.10.0"
     },
+    "devDependencies": {
+        "kthxbai": "^0.4.0"
+    },
     "license": "MPL-2.0",
     "bin": {
         "config-agent": "./bin/agent.sh"

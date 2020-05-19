@@ -5,7 +5,7 @@
 #
 
 #
-# Copyright 2019 Joyent, Inc.
+# Copyright 2020 Joyent, Inc.
 #
 
 #
@@ -22,13 +22,13 @@ JSSTYLE_FILES	 = $(JS_FILES)
 JSSTYLE_FLAGS    = -t 4 -o doxygen,unparenthesized-return=0
 SMF_MANIFESTS_IN = smf/manifests/config-agent.xml.in
 
-NODE_PREBUILT_VERSION=v6.17.0
+NODE_PREBUILT_VERSION=v6.17.1
 ifeq ($(shell uname -s),SunOS)
 	# config-agent runs in zones *and* in the GZ, so we need to make sure we use
 	# a node runtime that is able to run in the GZ (those runtimes can run in
 	# zones).
 	NODE_PREBUILT_TAG=gz
-	NODE_PREBUILT_IMAGE=1ad363ec-3b83-11e8-8521-2f68a4a34d5d
+	NODE_PREBUILT_IMAGE=5417ab20-3156-11ea-8b19-2b66f5e7a439
 endif
 
 ENGBLD_REQUIRE := $(shell git submodule update --init deps/eng)
