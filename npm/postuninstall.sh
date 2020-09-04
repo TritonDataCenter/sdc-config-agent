@@ -6,14 +6,27 @@
 #
 
 #
-# Copyright (c) 2015, Joyent, Inc.
+# Copyright 2020 Joyent, Inc.
 #
 
 export SMFDIR=$npm_config_smfdir
 
-if svcs config-agent; then
-    svcadm disable -s config-agent
-    svccfg delete config-agent
-fi
 
-rm -f "$SMFDIR/config-agent.xml"
+if [[ "$(uname)" == "Linux" ]]; then
+    if [[ "$(systemctl is-active triton-config-agent)" == "active" ]]; then
+        systemctl stop triton-config-agent
+    fi
+
+    if [[ "$(systemctl is-enabled triton-config-agent)" == "enabled" ]]; then
+        systemctl disable triton-config-agent
+    fi
+
+    rm -f /etc/systemd/system/triton-config-agent.service
+else
+    if svcs config-agent; then
+        svcadm disable -s config-agent
+        svccfg delete config-agent
+    fi
+
+    rm -f "$SMFDIR/config-agent.xml"
+fi

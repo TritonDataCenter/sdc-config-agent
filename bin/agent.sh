@@ -6,7 +6,7 @@
 #
 
 #
-# Copyright (c) 2018, Joyent, Inc.
+# Copyright 2020 Joyent, Inc.
 #
 
 #
@@ -27,7 +27,11 @@ set -o xtrace
 # ---- globals
 
 DIR=$(cd $(dirname $(readlink -f $0))/../ >/dev/null; pwd)
-EXEC="$DIR/build/node/bin/node $DIR/agent.js"
+if [[ "$(uname)" == "Linux" ]]; then
+    EXEC="/usr/node/bin/node $DIR/agent.js"
+else
+    EXEC="$DIR/build/node/bin/node $DIR/agent.js"
+fi
 
 # Default config path for non-global zone instances.
 DEFAULT_NGZ_CONFIG_FILE=$DIR/etc/config.json
@@ -80,7 +84,11 @@ done
 ZONENAME=$(zonename)
 if [[ "$ZONENAME" == "global" ]]; then
     SAPI_URL=
-    . /lib/sdc/config.sh
+    if [[ "$(uname)" == "Linux" ]]; then
+        . /usr/triton/bin/config.sh
+    else
+        . /lib/sdc/config.sh
+    fi
     load_sdc_config
 
     if [[ -n ${CONFIG_sapi_domain} ]]; then

@@ -6,7 +6,7 @@
 #
 
 #
-# Copyright (c) 2018, Joyent, Inc.
+# Copyright 2020 Joyent, Inc.
 #
 
 if [[ -n "$TRACE" ]]; then
@@ -29,27 +29,47 @@ export ETC_DIR=$npm_config_etc
 export SMF_DIR=$npm_config_smfdir
 export LIB_DIR=$PREFIX/lib
 
-
 # just run the config-agent in synchronous mode to write initial configs and
 # let agents start running before creating core zones
 setup_config_agent()
 {
-    local prefix=$LIB_DIR/node_modules/config-agent
     local tmpfile=/tmp/agent.$$.xml
 
     mkdir -p ${ETC_DIR}/config-agent.d
 
-    sed -e "s#@@PREFIX@@#${prefix}#g" \
-        ${prefix}/smf/manifests/config-agent.xml > ${tmpfile}
-    mv ${tmpfile} $SMF_DIR/config-agent.xml
+    local prefix=$LIB_DIR/node_modules/config-agent
 
-    svccfg import $SMF_DIR/config-agent.xml
-    svcadm enable config-agent
+    if [[ "$(uname)" == "Linux" ]]; then
+        sed -e "s#@@PREFIX@@#${prefix}#g" \
+            ${prefix}/systemd/triton-config-agent.service.in > ${tmpfile}
+        mv ${tmpfile} /etc/systemd/system/triton-config-agent.service
+
+        if [[ "$(systemctl is-active triton-config-agent)" == "active" ]]; then
+            systemctl reload-or-restart triton-config-agent
+        else
+            if [[ "$(sytemctl is-enabled triton-config-agent)" == "disabled" ]]; then
+                systemctl enable triton-config-agent
+            fi
+            systemctl start triton-config-agent
+        fi
+    else
+        sed -e "s#@@PREFIX@@#${prefix}#g" \
+            ${prefix}/smf/manifests/config-agent.xml > ${tmpfile}
+        mv ${tmpfile} $SMF_DIR/config-agent.xml
+
+        svccfg import $SMF_DIR/config-agent.xml
+        svcadm enable config-agent
+    fi
+
 }
 
 setup_config_agent
 
-. /lib/sdc/config.sh
+if [[ "$(uname)" == "Linux" ]]; then
+    . /usr/triton/bin/config.sh
+else
+    . /lib/sdc/config.sh
+fi
 load_sdc_config
 
 AGENT=$npm_package_name
