@@ -53,9 +53,7 @@ var VNIC_NAME_RE = /^([a-zA-Z0-9_]{0,31})[0-9]+$/;
 
 var config;
 var configPath;
-var defaultConfigPath = (os.platform() === 'linux') ?
-    '/usr/triton/sdc-config-agent/etc/config.json' :
-    '/opt/smartdc/config-agent/etc/config.json';
+var defaultConfigPath = '/opt/smartdc/config-agent/etc/config.json';
 
 // Only the GZ config-agent runs in 'no-config' mode, so for non-GZ agents
 // we ensure that a default configuration is always present. If none of the

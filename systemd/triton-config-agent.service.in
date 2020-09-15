@@ -20,7 +20,7 @@ After=network.target
 [Service]
 Environment=PATH=/usr/node/bin:/usr/triton/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 Type=simple
-ExecStart=/usr/node/bin/node @@PREFIX@@/bin/agent.sh
+ExecStart=@@PREFIX@@/bin/agent.sh
 
 [Install]
 WantedBy=multi-user.target

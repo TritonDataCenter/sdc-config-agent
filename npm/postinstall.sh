@@ -44,13 +44,13 @@ setup_config_agent()
             ${prefix}/systemd/triton-config-agent.service.in > ${tmpfile}
         mv ${tmpfile} /etc/systemd/system/triton-config-agent.service
 
-        if [[ "$(systemctl is-active triton-config-agent)" == "active" ]]; then
-            systemctl reload-or-restart triton-config-agent
+        if [[ "$(/usr/bin/systemctl is-active triton-config-agent)" == "active" ]]; then
+            /usr/bin/systemctl reload-or-restart triton-config-agent
         else
-            if [[ "$(sytemctl is-enabled triton-config-agent)" == "disabled" ]]; then
-                systemctl enable triton-config-agent
+            if [[ "$(/usr/bin/systemctl is-enabled triton-config-agent)" == "disabled" ]]; then
+                /usr/bin/systemctl enable triton-config-agent
             fi
-            systemctl start triton-config-agent
+            /usr/bin/systemctl start triton-config-agent
         fi
     else
         sed -e "s#@@PREFIX@@#${prefix}#g" \
