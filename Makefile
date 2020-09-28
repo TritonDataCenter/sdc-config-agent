@@ -17,9 +17,9 @@
 #
 JS_FILES	:= $(shell ls *.js) $(shell find cmd lib -name '*.js')
 JSL_CONF_NODE	 = tools/jsl.node.conf
-JSL_FILES_NODE   = $(JS_FILES)
+JSL_FILES_NODE	 = $(JS_FILES)
 JSSTYLE_FILES	 = $(JS_FILES)
-JSSTYLE_FLAGS    = -o indent=4,doxygen,unparenthesized-return=0
+JSSTYLE_FLAGS	 = -o indent=4,doxygen,unparenthesized-return=0
 SMF_MANIFESTS_IN = smf/manifests/config-agent.xml.in
 
 NODE_PREBUILT_VERSION=v6.17.1
@@ -38,19 +38,43 @@ TOP ?= $(error Unable to access eng.git submodule Makefiles.)
 ifeq ($(shell uname -s),SunOS)
 	include ./deps/eng/tools/mk/Makefile.node_prebuilt.defs
 else
-	NPM_EXEC :=
-	NPM = npm
-	NODE = node
+    ifeq ($(shell uname -s),Linux)
+	NODE_INSTALL    ?= $(BUILD)/node
+	NODE			   ?= $(TOP)/$(NODE_INSTALL)/bin/node
+	NPM			   ?= PATH=$(TOP)/$(NODE_INSTALL)/bin:$(PATH) $(NODE) $(TOP)/$(NODE_INSTALL)/bin/npm
+	NODE_PREBUILT_TARBALL=https://us-east.manta.joyent.com/Joyent_Dev/public/bits/linuxcn/sdcnode-v8.16.1-linux-63d6e664-3f1f-11e8-aef6-a3120cf8dd9d-linuxcn-20191231T144917Z-gdd5749b.tgz
+    else
+	NPM=npm
+	NODE=node
+	NPM_EXEC=$(shell which npm)
+	NODE_EXEC=$(shell which node)
+    endif
 endif
 include ./deps/eng/tools/mk/Makefile.smf.defs
+
+ifeq ($(shell uname -s),Linux)
+NODE_EXEC	   := $(TOP)/$(NODE_INSTALL)/bin/node
+NPM_EXEC	   := $(TOP)/$(NODE_INSTALL)/bin/npm
+
+$(NODE_EXEC) $(NPM_EXEC):
+	rm -rf $(NODE_INSTALL)
+	mkdir -p $(shell dirname $(NODE_INSTALL))
+	$(CURL) -sS --fail --connect-timeout 30 $(NODE_PREBUILT_TARBALL) -o $(BUILD)/sdcnode-v8.16.1.tgz; \
+	(cd $(TOP)/$(BUILD)/ && $(TAR) xf sdcnode-v8.16.1.tgz);
+endif
 
 
 #
 # Repo-specific targets
 #
 .PHONY: all
-all: $(SMF_MANIFESTS) | $(NPM_EXEC)
-	$(NPM) install
+ifeq ($(shell uname -s),SunOS)
+all: $(SMF_MANIFESTS) | $(NPM_EXEC) $(REPO_DEPS) $(ZFS_SNAPSHOT_TAR) $(NOMKNOD)
+	$(RUN_NPM_INSTALL)
+else
+all: $(SMF_MANIFESTS) | $(NPM_EXEC) $(REPO_DEPS)
+	   $(RUN_NPM_INSTALL)
+endif
 
 .PHONY: kthxbai
 kthxbai:
@@ -65,12 +89,19 @@ DISTCLEAN_FILES+=node_modules $(NAME)-*.manifest
 # Packaging targets
 #
 
-TOP             := $(shell pwd)
+TOP		:= $(shell pwd)
 
 NAME			:= config-agent
 RELEASE_TARBALL := $(NAME)-pkg-$(STAMP).tar.gz
 RELEASE_MANIFEST := $(NAME)-pkg-$(STAMP).manifest
-RELSTAGEDIR     := /tmp/$(NAME)-$(STAMP)
+RELSTAGEDIR	:= /tmp/$(NAME)-$(STAMP)
+
+ifeq ($(shell uname -s),SunOS)
+CP_NODE=cp -r $(TOP)/build/node $(RELSTAGEDIR)/$(NAME)
+else
+cp_NODE=echo 'Skip copying node for Linux CNs'
+endif
+
 
 .PHONY: release
 release: all kthxbai docs $(SMF_MANIFESTS)
@@ -87,7 +118,7 @@ release: all kthxbai docs $(SMF_MANIFESTS)
 		$(TOP)/npm \
 		$(TOP)/smf \
 		$(RELSTAGEDIR)/$(NAME)
-	cp -PR $(NODE_INSTALL) $(RELSTAGEDIR)/$(NAME)/build/node
+	$(CP_NODE)
 	# Trim node
 	rm -rf \
 		$(RELSTAGEDIR)/$(NAME)/build/node/bin/npm \
