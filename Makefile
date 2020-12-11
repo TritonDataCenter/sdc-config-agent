@@ -97,7 +97,7 @@ RELEASE_MANIFEST := $(NAME)-pkg-$(STAMP).manifest
 RELSTAGEDIR	:= /tmp/$(NAME)-$(STAMP)
 
 ifeq ($(shell uname -s),SunOS)
-CP_NODE=cp -r $(TOP)/build/node $(RELSTAGEDIR)/$(NAME)
+CP_NODE=cp -PR $(NODE_INSTALL) $(RELSTAGEDIR)/$(NAME)/build/node
 else
 cp_NODE=echo 'Skip copying node for Linux CNs'
 endif
