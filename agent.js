@@ -405,10 +405,10 @@ async.waterfall([
                 cb(err);
                 return;
             });
+        } else {
+            startPeriodicRefresh();
+            cb(null);
         }
-
-        startPeriodicRefresh();
-        cb(null);
     }
 ], function (err) {
     if (err) {
