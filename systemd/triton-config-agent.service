@@ -18,9 +18,10 @@ Documentation=https://github.com/joyent/linux-live/tree/linuxcn
 After=network.target
 
 [Service]
-Environment=PATH=/usr/node/bin:/usr/triton/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+EnvironmentFile=/usr/triton/config/systemd.env
 Type=simple
-ExecStart=@@PREFIX@@/bin/agent.sh
+# Note that TRITON_AGENT_NODE_DIR is set in the EnvironmentFile.
+ExecStart=${TRITON_AGENT_NODE_DIR}/config-agent/bin/agent.sh
 
 [Install]
 WantedBy=multi-user.target
