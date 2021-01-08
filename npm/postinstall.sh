@@ -16,6 +16,11 @@ fi
 set -o errexit
 set -o pipefail
 
+if [[ "$(uname)" == "Linux" ]]; then
+    printf 'Linux postinstall not used anymore\n' >&2
+    exit 0
+fi
+
 if [[ -z "$npm_config_smfdir" || ! -d "$npm_config_smfdir" ]]; then
     echo "Skipping config-agent postinstall (assuming build-time install)"
     exit 0
@@ -39,38 +44,17 @@ setup_config_agent()
 
     local prefix=$LIB_DIR/node_modules/config-agent
 
-    if [[ "$(uname)" == "Linux" ]]; then
-        sed -e "s#@@PREFIX@@#${prefix}#g" \
-            ${prefix}/systemd/triton-config-agent.service.in > ${tmpfile}
-        mv ${tmpfile} /usr/lib/systemd/system/triton-config-agent.service
+    sed -e "s#@@PREFIX@@#${prefix}#g" \
+        ${prefix}/smf/manifests/config-agent.xml > ${tmpfile}
+    mv ${tmpfile} $SMF_DIR/config-agent.xml
 
-        if [[ "$(/usr/bin/systemctl is-active triton-config-agent)" == "active" ]]; then
-            /usr/bin/systemctl reload-or-restart triton-config-agent
-        else
-            if [[ "$(/usr/bin/systemctl is-enabled triton-config-agent)" == "disabled" ]]; then
-                /usr/bin/systemctl enable triton-config-agent
-            fi
-            /usr/bin/systemctl start triton-config-agent
-        fi
-        cp /usr/lib/systemd/system/triton-config-agent.service ${prefix}/systemd/triton-config-agent.service
-    else
-        sed -e "s#@@PREFIX@@#${prefix}#g" \
-            ${prefix}/smf/manifests/config-agent.xml > ${tmpfile}
-        mv ${tmpfile} $SMF_DIR/config-agent.xml
-
-        svccfg import $SMF_DIR/config-agent.xml
-        svcadm enable config-agent
-    fi
-
+    svccfg import $SMF_DIR/config-agent.xml
+    svcadm enable config-agent
 }
 
 setup_config_agent
 
-if [[ "$(uname)" == "Linux" ]]; then
-    . /usr/triton/bin/config.sh
-else
-    . /lib/sdc/config.sh
-fi
+. /lib/sdc/config.sh
 load_sdc_config
 
 AGENT=$npm_package_name
