@@ -19,7 +19,7 @@ After=network.target
 
 [Service]
 EnvironmentFile=/usr/triton/config/systemd.env
-Type=simple
+Type=forking
 # Note that TRITON_AGENT_NODE_DIR is set in the EnvironmentFile.
 ExecStart=/bin/bash ${TRITON_AGENT_NODE_DIR}/config-agent/bin/agent.sh
 
