@@ -6,6 +6,7 @@
 
 #
 # Copyright 2020 Joyent, Inc.
+# Copyright 2022 MNX Cloud, Inc.
 #
 
 #
@@ -83,10 +84,12 @@ release: all kthxbai docs $(SMF_MANIFESTS)
 		$(TOP)/Makefile \
 		$(TOP)/node_modules \
 		$(TOP)/agent.js \
-		$(TOP)/package.json \
 		$(TOP)/npm \
 		$(TOP)/smf \
 		$(RELSTAGEDIR)/$(NAME)
+	json -f $(TOP)/package.json -e 'this.version += "-$(STAMP)"' \
+	    > $(RELSTAGEDIR)/$(NAME)/package.json
+
 	cp -PR $(NODE_INSTALL) $(RELSTAGEDIR)/$(NAME)/build/node
 	# Trim node
 	rm -rf \
